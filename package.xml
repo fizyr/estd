@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>estd</name>
+	<version>0.1.0</version>
+	<description>Extended C++ library</description>
+	<license>Apache v2.0</license>
+	<author email="maarten@de-vri.es">Maarten de Vries</author>
+	<maintainer email="maarten@de-vri.es">Maarten de Vries</maintainer>
+
+	<buildtool_depend>catkin</buildtool_depend>
+</package>
