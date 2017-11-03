@@ -11,5 +11,6 @@ function(declare_tests prefix)
 	endforeach()
 endfunction()
 
+add_subdirectory(range)
 add_subdirectory(result)
 add_subdirectory(traits)

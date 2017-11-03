@@ -4,8 +4,8 @@
 
 namespace estd {
 
-template<typename T> using iterator_type       = std::decay_t<decltype(std::declval<T>().begin())>;
-template<typename T> using const_iterator_type = std::decay_t<decltype(std::declval<T const>().begin())>;
+template<typename T> using iterator_type       = std::decay_t<decltype(begin(std::declval<T &>()))>;
+template<typename T> using const_iterator_type = std::decay_t<decltype(begin(std::declval<T const &>()))>;
 
 namespace detail {
 	using std::declval;
