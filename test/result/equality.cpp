@@ -1,7 +1,7 @@
 #include "result.hpp"
 
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+#include "../catch.hpp"
 
 namespace estd {
 

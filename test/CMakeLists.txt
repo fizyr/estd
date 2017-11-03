@@ -1,2 +1,15 @@
+function(declare_test name)
+	add_executable(${name} ${ARGN})
+	add_custom_target(run_${prefix}${test} COMMAND ${name})
+	add_dependencies(run_tests run_${name})
+	add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+function(declare_tests prefix)
+	foreach(test ${ARGN})
+		declare_test(${prefix}${test} ${test}.cpp)
+	endforeach()
+endfunction()
+
 add_subdirectory(result)
 add_subdirectory(traits)
