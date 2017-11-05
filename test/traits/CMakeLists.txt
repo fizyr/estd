@@ -1,1 +1,3 @@
-add_library(${PROJECT_NAME}_test_traits_container container.cpp)
+declare_compile_tests(test_${PROJECT_NAME}_traits_
+	container
+)

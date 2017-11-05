@@ -11,6 +11,17 @@ function(declare_tests prefix)
 	endforeach()
 endfunction()
 
+function(declare_compile_test name)
+	add_library(${name} ${ARGN})
+	add_dependencies(run_tests ${name})
+endfunction()
+
+function(declare_compile_tests prefix)
+	foreach(test ${ARGN})
+		declare_compile_test(${prefix}${test} ${test}.cpp)
+	endforeach()
+endfunction()
+
 add_subdirectory(range)
 add_subdirectory(result)
 add_subdirectory(traits)
