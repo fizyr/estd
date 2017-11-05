@@ -117,7 +117,7 @@ namespace detail {
 	 * Otherwise, all void return values are mapped to empty_t values.
 	 */
 	template<typename F, typename Tuple, std::size_t ...I>
-	constexpr auto tuple_transform(Tuple && tuple, std::index_sequence<I...>, F && f) {
+	constexpr auto tuple_transform_impl(Tuple && tuple, std::index_sequence<I...>, F && f) {
 		using std::get;
 		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, get<I>(std::forward<Tuple>(tuple)))), void> && ...);
 		if constexpr(all_void) {
@@ -136,7 +136,7 @@ namespace detail {
 	 * Otherwise, all void return values are mapped to empty_t values.
 	 */
 	template<typename F, typename Tuple, std::size_t ...I>
-	constexpr auto tuple_transform_raw(Tuple && tuple, std::index_sequence<I...>, F && f) {
+	constexpr auto tuple_transform_raw_impl(Tuple && tuple, std::index_sequence<I...>, F && f) {
 		using std::get;
 		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, get<I>(std::forward<Tuple>(tuple)))), void> && ...);
 		if constexpr(all_void) {
@@ -145,6 +145,18 @@ namespace detail {
 			return std::tuple<decltype(invoke_map_void(f, get<I>(std::forward<Tuple>(tuple))))...>(invoke_map_void(f, get<I>(std::forward<Tuple>(tuple)))...);
 		}
 	}
+}
+
+/// Create a tuple of values by applying a function to each value, and passing the results to std::make_tuple (thus decaying the value types).
+template<typename Tuple, typename F>
+constexpr auto tuple_transform(Tuple && tuple, F && f) {
+	return detail::tuple_transform_impl(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
+}
+
+/// Create a tuple of values by applying a function to each value, without decaying the result types.
+template<typename Tuple, typename F>
+constexpr auto tuple_transform_raw(Tuple && tuple, F && f) {
+	return detail::tuple_transform_raw_impl(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
 }
 
 /// Perform a foldl over the values of a tuple with an initial accumulator.
@@ -207,19 +219,6 @@ constexpr auto foldr(Tuple && tuple, F && f) {
 	} else {
 		return foldr(remove_back<1>(std::forward<Tuple>(tuple)), get<std::tuple_size_v<Tuple> - 1>(std::forward<Tuple>(tuple)), f);
 	}
-}
-
-
-/// Create a tuple of values by applying a function to each value, and passing the results to std::make_tuple (thus decaying the value types).
-template<typename Tuple, typename F>
-constexpr auto tuple_transform(Tuple && tuple, F && f) {
-	return detail::tuple_transform(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
-}
-
-/// Create a tuple of values by applying a function to each value, without decaying the result types.
-template<typename Tuple, typename F>
-constexpr auto tuple_transform_raw(Tuple && tuple, F && f) {
-	return detail::tuple_transform_raw(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
 }
 
 }
