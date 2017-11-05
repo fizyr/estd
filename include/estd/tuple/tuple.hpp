@@ -1,10 +1,64 @@
 #pragma once
+#include "../traits/is_tuple.hpp"
+#include "../util/integer_sequence.hpp"
+
 #include <tuple>
 #include <type_traits>
 #include <utility>
 #include <functional>
 
 namespace estd {
+
+/// Make an index sequence for a tuple.
+template<typename Tuple>
+constexpr auto tuple_index_sequence() {
+	return std::make_index_sequence<std::tuple_size_v<Tuple>>();
+}
+
+/// Make an index sequence for a tuple.
+template<typename Tuple>
+constexpr auto tuple_index_sequence(Tuple const &) {
+	return tuple_index_sequence<Tuple>();
+}
+
+/// Select elements from a tuple with an index sequence.
+template<typename Tuple, std::size_t... I, typename = std::enable_if_t<is_tuple<Tuple>>>
+auto select(Tuple && tuple, std::index_sequence<I...>) {
+	return std::tuple<std::tuple_element_t<I, Tuple>...>{std::get<I>(std::forward<Tuple>(tuple))...};
+}
+
+/// Remove N elements from the front of a tuple.
+template<std::size_t N, typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+auto remove_front(Tuple && tuple) {
+	return select(std::forward<Tuple>(tuple), remove_front<N>(tuple_index_sequence<Tuple>()));
+}
+
+/// Remove N elements from the back of a tuple.
+template<std::size_t N, typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+auto remove_back(Tuple && tuple) {
+	return select(std::forward<Tuple>(tuple), remove_back<N>(tuple_index_sequence<Tuple>()));
+}
+
+/// Take a slice of a tuple.
+/**
+ * \param Start The first index included in the slice.
+ * \param End   The first index after Start not included in the slice.
+ *
+ * If either Start or End is negative, counting starts from the end of the original tuple.
+ *
+ * If End is std::numeric_limits<long int>::max() (the default), the slice extends to the end of the original tuple.
+ *
+ * Examples:
+ *   slice<0>(tuple);       // Return a copy of the entire tuple.
+ *   slice<1, 3>(tuple);    // Return a tuple with elements 1 and 2.
+ *   slice<-2>(tuple);      // Return a tuple with the last two elements.
+ *   slice<-2, -1>(tuple);  // Return a tuple with the second-to-last element.
+ *   slice<0, -1>(tuple);   // Return a tuple with everything except the last element.
+ */
+template<long int Start, long int End = std::numeric_limits<long int>::max(), typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+auto slice(Tuple && tuple) {
+	return select(std::forward<Tuple>(tuple), slice<Start, End>(tuple_index_sequence<Tuple>()));
+}
 
 /// An empty value.
 constexpr struct empty_t {} empty;
@@ -63,19 +117,9 @@ namespace detail {
 			return std::tuple<decltype(invoke_map_void(f, std::get<I>(std::forward<Tuple>(tuple))))...>(invoke_map_void(f, std::get<I>(std::forward<Tuple>(tuple)))...);
 		}
 	}
+
 }
 
-/// Make an index sequence for a tuple.
-template<typename Tuple>
-constexpr auto tuple_index_sequence() {
-	return std::make_index_sequence<std::tuple_size_v<Tuple>>();
-}
-
-/// Make an index sequence for a tuple.
-template<typename Tuple>
-constexpr auto tuple_index_sequence(Tuple const &) {
-	return tuple_index_sequence<Tuple>();
-}
 
 /// Create a tuple of values by applying a function to each value, and passing the results to std::make_tuple (thus decaying the value types).
 template<typename Tuple, typename F>
