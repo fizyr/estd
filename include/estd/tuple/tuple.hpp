@@ -24,7 +24,8 @@ constexpr auto tuple_index_sequence(Tuple const &) {
 /// Select elements from a tuple with an index sequence.
 template<typename Tuple, std::size_t... I, typename = std::enable_if_t<is_tuple<Tuple>>>
 auto select(Tuple && tuple, std::index_sequence<I...>) {
-	return std::tuple<std::tuple_element_t<I, Tuple>...>{std::get<I>(std::forward<Tuple>(tuple))...};
+	using std::get;
+	return std::tuple<std::tuple_element_t<I, Tuple>...>{get<I>(std::forward<Tuple>(tuple))...};
 }
 
 /// Remove N elements from the front of a tuple.
@@ -92,11 +93,12 @@ namespace detail {
 	 */
 	template<typename F, typename Tuple, std::size_t ...I>
 	constexpr auto tuple_transform(Tuple && tuple, std::index_sequence<I...>, F && f) {
-		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, std::get<I>(std::forward<Tuple>(tuple)))), void> && ...);
+		using std::get;
+		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, get<I>(std::forward<Tuple>(tuple)))), void> && ...);
 		if constexpr(all_void) {
-			(std::invoke(f, std::get<I>(std::forward<Tuple>(tuple))), ...);
+			(std::invoke(f, get<I>(std::forward<Tuple>(tuple))), ...);
 		} else {
-			return std::make_tuple(invoke_map_void(f, std::get<I>(std::forward<Tuple>(tuple)))...);
+			return std::make_tuple(invoke_map_void(f, get<I>(std::forward<Tuple>(tuple)))...);
 		}
 	}
 
@@ -110,14 +112,76 @@ namespace detail {
 	 */
 	template<typename F, typename Tuple, std::size_t ...I>
 	constexpr auto tuple_transform_raw(Tuple && tuple, std::index_sequence<I...>, F && f) {
-		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, std::get<I>(std::forward<Tuple>(tuple)))), void> && ...);
+		using std::get;
+		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, get<I>(std::forward<Tuple>(tuple)))), void> && ...);
 		if constexpr(all_void) {
-			(std::invoke(f, std::get<I>(std::forward<Tuple>(tuple))), ...);
+			(std::invoke(f, get<I>(std::forward<Tuple>(tuple))), ...);
 		} else {
-			return std::tuple<decltype(invoke_map_void(f, std::get<I>(std::forward<Tuple>(tuple))))...>(invoke_map_void(f, std::get<I>(std::forward<Tuple>(tuple)))...);
+			return std::tuple<decltype(invoke_map_void(f, get<I>(std::forward<Tuple>(tuple))))...>(invoke_map_void(f, get<I>(std::forward<Tuple>(tuple)))...);
 		}
 	}
+}
 
+/// Perform a foldl over the values of a tuple with an initial accumulator.
+/**
+ * If the tuple is empty, the initial accumulator value is returned unchanged.
+ */
+template<typename F, typename Tuple, typename Accumulator, typename = std::enable_if_t<is_tuple<Tuple>>>
+constexpr auto foldl(Tuple && tuple, Accumulator && accumulator, F && f) {
+	using std::get;
+	if constexpr(std::tuple_size_v<Tuple> == 0) {
+		return accumulator;
+	} else if constexpr(std::tuple_size_v<Tuple> == 1) {
+		return f(accumulator, get<0>(std::forward<Tuple>(tuple)));
+	} else {
+		return foldl(remove_front<1>(std::forward<Tuple>(tuple)), f(accumulator, get<0>(std::forward<Tuple>(tuple))), f);
+	}
+}
+
+/// Perform a foldl over the values of a tuple without an initial accumulator.
+/**
+ * If the tuple contains exactly one element, that element is returned unchanged.
+ */
+template<typename F, typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+constexpr auto foldl(Tuple && tuple, F && f) {
+	static_assert(std::tuple_size_v<Tuple> > 0, "Can not foldl over an empty tuple without an initial accumulator value.");
+	using std::get;
+	if constexpr(std::tuple_size_v<Tuple> == 1) {
+		return get<0>(std::forward<Tuple>(tuple));
+	} else {
+		return foldl(remove_front<1>(std::forward<Tuple>(tuple)), get<0>(std::forward<Tuple>(tuple)), f);
+	}
+}
+
+/// Perform a foldl over the values of a tuple with an initial accumulator.
+/**
+ * If the tuple is empty, the initial accumulator value is returned unchanged.
+ */
+template<typename F, typename Tuple, typename Accumulator, typename = std::enable_if_t<is_tuple<Tuple>>>
+constexpr auto foldr(Tuple && tuple, Accumulator && accumulator, F && f) {
+	using std::get;
+	if constexpr(std::tuple_size_v<Tuple> == 0) {
+		return accumulator;
+	} else if constexpr(std::tuple_size_v<Tuple> == 1) {
+		return f(get<0>(std::forward<Tuple>(tuple)), accumulator);
+	} else {
+		return foldr(remove_back<1>(std::forward<Tuple>(tuple)), f(get<std::tuple_size_v<Tuple> - 1>(std::forward<Tuple>(tuple)), accumulator), f);
+	}
+}
+
+/// Perform a foldl over the values of a tuple without an initial accumulator.
+/**
+ * If the tuple contains exactly one element, that element is returned unchanged.
+ */
+template<typename F, typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+constexpr auto foldr(Tuple && tuple, F && f) {
+	static_assert(std::tuple_size_v<Tuple> > 0, "Can not foldl over an empty tuple without an initial accumulator value.");
+	using std::get;
+	if constexpr(std::tuple_size_v<Tuple> == 1) {
+		return get<0>(std::forward<Tuple>(tuple));
+	} else {
+		return foldr(remove_back<1>(std::forward<Tuple>(tuple)), get<std::tuple_size_v<Tuple> - 1>(std::forward<Tuple>(tuple)), f);
+	}
 }
 
 
