@@ -22,11 +22,11 @@ namespace detail {
 	struct value_pack_element<0, T, head, tail...> : std::integral_constant<T, head> {};
 }
 
-/// Get the first type from a parameter pack.
-template<typename H, typename...> using parameter_pack_head = H;
-
 /// Get a type from a parameter pack by index.
 template<std::size_t N, typename... Types> using parameter_pack_element = typename detail::parameter_pack_element<N, Types...>::type;
+
+/// Get the first type from a parameter pack.
+template<typename... Types> using parameter_pack_head = parameter_pack_element<0, Types...>;
 
 /// Get the first value from a parameter pack.
 template<typename T, T Head, T...> constexpr T value_pack_head = Head;
