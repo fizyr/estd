@@ -1,7 +1,7 @@
 #pragma once
 #include "../traits/is_tuple.hpp"
-#include "../util/integer_sequence.hpp"
-#include "../util/parameter_pack.hpp"
+#include "../utility/integer_sequence.hpp"
+#include "../utility/parameter_pack.hpp"
 
 #include <tuple>
 #include <type_traits>
