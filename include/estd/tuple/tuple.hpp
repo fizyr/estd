@@ -41,7 +41,7 @@ auto back(Tuple && tuple) -> decltype(std::get<std::tuple_size_v<std::decay_t<Tu
 template<typename Tuple, std::size_t... I, typename = std::enable_if_t<is_tuple<Tuple>>>
 auto select(Tuple && tuple, std::index_sequence<I...>) {
 	using std::get;
-	return std::tuple<std::tuple_element_t<I, Tuple>...>{get<I>(std::forward<Tuple>(tuple))...};
+	return std::tuple<std::tuple_element_t<I, std::decay_t<Tuple>>...>{get<I>(std::forward<Tuple>(tuple))...};
 }
 
 /// Select elements by reference from a tuple with an index sequence.
