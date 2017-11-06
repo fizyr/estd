@@ -106,7 +106,6 @@ TEST_CASE("tuple select_ref", "[tuple]") {
 	}
 }
 
-
 TEST_CASE("tuple slice", "[tuple]") {
 	SECTION("correct indices are copied") {
 		REQUIRE(slice<0>(std::tuple(1, 2, 3)) == std::tuple(1, 2, 3));
@@ -127,6 +126,32 @@ TEST_CASE("tuple slice", "[tuple]") {
 		static_assert_same<decltype(sliced), std::tuple<int &, int &>>();
 		REQUIRE(&std::get<0>(sliced) == &a);
 		REQUIRE(&std::get<1>(sliced) == &b);
+	}
+}
+
+TEST_CASE("tuple slice_ref", "[tuple]") {
+	SECTION("correct indices are copied") {
+		REQUIRE(slice_ref<0>(std::tuple(1, 2, 3)) == std::tuple(1, 2, 3));
+		REQUIRE((slice_ref<0, std::numeric_limits<long int>::max()>(std::tuple(1, 2, 3)) == std::tuple(1, 2, 3)));
+
+		REQUIRE((slice_ref< 0    >(std::tuple(0, 1, 2, 3, 4)) == std::tuple(0, 1, 2, 3, 4)));
+		REQUIRE((slice_ref< 0, -1>(std::tuple(0, 1, 2, 3, 4)) == std::tuple(0, 1, 2, 3   )));
+		REQUIRE((slice_ref< 1, -1>(std::tuple(0, 1, 2, 3, 4)) == std::tuple(   1, 2, 3   )));
+		REQUIRE((slice_ref<-1    >(std::tuple(0, 1, 2, 3, 4)) == std::tuple(            4)));
+		REQUIRE((slice_ref<-2, -1>(std::tuple(0, 1, 2, 3, 4)) == std::tuple(         3   )));
+		REQUIRE((slice_ref<-1, -1>(std::tuple(0, 1, 2, 3, 4)) == std::tuple<>()));
+	}
+
+	SECTION("references are added to everything") {
+		std::tuple<int> tuple(1);
+		std::tuple<int> const const_tuple(1);
+		static_assert_same<decltype(slice_ref<0>(tuple)),                    std::tuple<int &>>();
+		static_assert_same<decltype(slice_ref<0>(std::move(tuple))),         std::tuple<int &&>>();
+		static_assert_same<decltype(slice_ref<0>(const_tuple)),              std::tuple<int const &>>();
+		static_assert_same<decltype(slice_ref<0>(std::tuple(1))),            std::tuple<int &&>>();
+
+		REQUIRE(&std::get<0>(slice_ref<0>(tuple))       == &std::get<0>(tuple));
+		REQUIRE(&std::get<0>(slice_ref<0>(const_tuple)) == &std::get<0>(const_tuple));
 	}
 }
 
