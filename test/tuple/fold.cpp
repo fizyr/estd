@@ -38,7 +38,7 @@ TEST_CASE("tuple left fold", "[tuple]") {
 		static_assert_same<decltype(foldl(std::tuple(1, 2.0, 3.f, 4), 10, mul)), double>();
 	}
 
-	SECTION("foldl is a left foldl") {
+	SECTION("foldl is a left fold") {
 		REQUIRE(foldl(std::tuple(1.0, 2, 3, 4.0), 10, drop_right) == 10);
 		REQUIRE(foldl(std::tuple(1  , 2, 3, 4.0),     drop_right) ==  1);
 		static_assert_same<decltype(foldl(std::tuple(1.0, 2, 3, 4.0), 10, drop_right)), int>();
@@ -82,7 +82,7 @@ TEST_CASE("tuple right fold", "[tuple]") {
 		static_assert_same<decltype(foldr(std::tuple(1, 2.0, 3.f, 4), 10, mul)), double>();
 	}
 
-	SECTION("foldr is a right foldr") {
+	SECTION("foldr is a right fold") {
 		REQUIRE(foldr(std::tuple(1, 2, 3, 4.0), 10.0, drop_right) == 1);
 		REQUIRE(foldr(std::tuple(1, 2, 3, 4.0),       drop_right) == 1);
 		static_assert_same<decltype(foldr(std::tuple(1, 2, 3, 4.0), 10.0, drop_right)), int>();
