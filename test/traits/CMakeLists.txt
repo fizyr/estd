@@ -3,4 +3,5 @@ declare_compile_tests(test_${PROJECT_NAME}_traits_
 	is_integer_sequence
 	is_tuple
 	iterator
+	replace_type
 )
