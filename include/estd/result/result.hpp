@@ -27,13 +27,17 @@ public:
 	using Error = E;
 
 protected:
+	using no_ref_T = std::remove_reference_t<T>;
+	using no_ref_E = std::remove_reference_t<E>;
+	constexpr static bool T_is_ref = std::is_reference_v<T>;
+	constexpr static bool E_is_ref = std::is_reference_v<E>;
+
 	/// Result storage.
 	detail::result_storage<T, E> data_;
 
 	template<typename T2, typename E2>
 	friend class result;
 
-public:
 	/// True if T and E are not implicitly convertible to each-other.
 	constexpr static bool unambiguous_types_ = !std::is_same<T, E>{} && !std::is_convertible<E, T>{} && !std::is_convertible<T, E>{};
 
@@ -50,10 +54,13 @@ public:
 	result(in_place_error_t, Args && ... args) : data_{in_place_error, std::forward<Args>(args)...} {}
 
 	/// Allow implicit conversion from T and E only if T and E are not implicitly convertible to eachother.
-	template<int  T1 = 1, typename = std::enable_if_t<T1 && unambiguous_types_>> result(T const  & value) : data_{in_place_valid, value} {}
-	template<int  T1 = 1, typename = std::enable_if_t<T1 && unambiguous_types_>> result(T       && value) : data_{in_place_valid, std::move(value)} {}
-	template<bool T1 = 1, typename = std::enable_if_t<T1 && unambiguous_types_>> result(E const  & error) : data_{in_place_error, error} {}
-	template<bool T1 = 1, typename = std::enable_if_t<T1 && unambiguous_types_>> result(E       && error) : data_{in_place_error, std::move(error)} {}
+	template<int  B = 1, typename = std::enable_if_t<B && !T_is_ref && unambiguous_types_>> result(std::decay_t<T> const  & value) : data_{in_place_valid, value} {}
+	template<int  B = 1, typename = std::enable_if_t<B && !T_is_ref && unambiguous_types_>> result(std::decay_t<T>       && value) : data_{in_place_valid, std::move(value)} {}
+	template<bool B = 1, typename = std::enable_if_t<B && !E_is_ref && unambiguous_types_>> result(std::decay_t<E> const  & error) : data_{in_place_error, error} {}
+	template<bool B = 1, typename = std::enable_if_t<B && !E_is_ref && unambiguous_types_>> result(std::decay_t<E>       && error) : data_{in_place_error, std::move(error)} {}
+
+	template<short B = 1, typename = std::enable_if_t<B && T_is_ref && unambiguous_types_>> result(T value) : data_{in_place_valid, value} {}
+	template<long  B = 1, typename = std::enable_if_t<B && E_is_ref && unambiguous_types_>> result(E error) : data_{in_place_error, error} {}
 
 	/// Allow explicit conversion from result<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
@@ -62,14 +69,17 @@ public:
 	explicit result(result<T2, E2> const & other) : data_{other.data} {}
 
 	/// Check if the result is a valid value.
-	explicit operator bool() const { return data_.valid(); }
+	bool valid() const { return data_.valid(); }
+
+	/// Check if the result is a valid value.
+	explicit operator bool() const { return valid(); }
 
 	/// Get the contained value without checking if it is valid.
-	T const & operator* () const { return data_.as_expected(); }
-	T       & operator* ()       { return data_.as_expected(); }
+	no_ref_T const & operator* () const { return data_.as_ok(); }
+	no_ref_T       & operator* ()       { return data_.as_ok(); }
 
-	T const * operator-> () const { return &data_.as_expected(); }
-	T       * operator-> ()       { return &data_.as_expected(); }
+	no_ref_T const * operator-> () const { return &data_.as_ok(); }
+	no_ref_T       * operator-> ()       { return &data_.as_ok(); }
 
 	/// Compare with another result.
 	template<typename T2, typename E2>
@@ -86,17 +96,17 @@ public:
 	/**
 	 * \throws make_default_exception(error()) if the result is not valid.
 	 */
-	T const & value() const { ensure_value(); return data_.as_expected(); }
-	T       & value()       { ensure_value(); return data_.as_expected(); }
+	no_ref_T const & value() const { ensure_value(); return data_.as_ok(); }
+	no_ref_T       & value()       { ensure_value(); return data_.as_ok(); }
 
 	/// Get the contained value.
 	/**
 	 * \throws make_exception(error()) if the result is not valid.
 	 */
 	template<typename MakeException>
-	T const & value(MakeException && make_exception) const {
+	no_ref_T const & value(MakeException && make_exception) const {
 		ensure_value(std::forward<MakeException>(make_exception));
-		return data_.as_expected();
+		return data_.as_ok();
 	}
 
 	/// Get the contained value.
@@ -104,44 +114,44 @@ public:
 	 * \throws make_exception(error()) if the result is not valid.
 	 */
 	template<typename MakeException>
-	T & value(MakeException make_exception) {
+	no_ref_T & value(MakeException make_exception) {
 		ensure_value(std::forward<MakeException>(make_exception));
-		return data_.as_expected();
+		return data_.as_ok();
 	}
 
 	/// Get the contained value or a fallback if the result is not valid.
-	T const & value_or(T const & fallback) const noexcept { if (!*this) return fallback; return data_.as_expected(); }
-	T       & value_or(T       & fallback)       noexcept { if (!*this) return fallback; return data_.as_expected(); }
+	no_ref_T const & value_or(no_ref_T const & fallback) const noexcept { if (!*this) return fallback; return data_.as_ok(); }
+	no_ref_T       & value_or(no_ref_T       & fallback)       noexcept { if (!*this) return fallback; return data_.as_ok(); }
 
 	/// Get the held error without checking if it is valid.
-	E const & error_unchecked() const { return data_.as_unexpected(); }
-	E       & error_unchecked()       { return data_.as_unexpected(); }
+	no_ref_E const & error_unchecked() const { return data_.as_error(); }
+	no_ref_E       & error_unchecked()       { return data_.as_error(); }
 
 	/// Get the held error.
 	/**
 	 * \throws a logic error if the result is valid.
 	 */
-	E const & error() const { ensure_error(); return data_.as_unexpected(); }
-	E       & error()       { ensure_error(); return data_.as_unexpected(); }
+	no_ref_E const & error() const { ensure_error(); return data_.as_error(); }
+	no_ref_E       & error()       { ensure_error(); return data_.as_error(); }
 
 	/// Get the held error, or a fallback value if the result is valid.
-	E const & error_or(E const  & fallback) const noexcept { if (*this) return fallback; return data_.as_unexpected(); }
-	E       & error_or(E        & fallback)       noexcept { if (*this) return fallback; return data_.as_unexpected(); }
-	E         error_or(E       && fallback) const noexcept { return error_or(fallback); }
+	no_ref_E const & error_or(no_ref_E const  & fallback) const noexcept { if (*this) return fallback; return data_.as_error(); }
+	no_ref_E       & error_or(no_ref_E        & fallback)       noexcept { if (*this) return fallback; return data_.as_error(); }
+	no_ref_E         error_or(no_ref_E       && fallback)       noexcept { return error_or(fallback); }
 
 	/// Get the held error, or a static default constructed error if the result is valid.
-	E const & error_or() const noexcept(noexcept(E{})) { static E default_error; return error_or(default_error); }
+	no_ref_E const & error_or() const noexcept(noexcept(E{})) { static E default_error; return error_or(default_error); }
 
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.
 	void ensure_value() const {
-		if (!*this) throw make_default_exception(data_.as_unexpected());
+		if (!*this) throw make_default_exception(data_.as_error());
 	}
 
 	/// \throws make_exception(error()) if the result is not valid.
 	template<typename MakeException>
 	void ensure_value(MakeException && make_exception) const {
-		if (!*this) throw std::forward<MakeException>(make_exception)(data_.as_unexpected());
+		if (!*this) throw std::forward<MakeException>(make_exception)(data_.as_error());
 	}
 
 	/// \throws logic_error if the result is valid.

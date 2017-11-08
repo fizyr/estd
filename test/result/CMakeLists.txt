@@ -1,8 +1,9 @@
 declare_tests(test_${PROJECT_NAME}_result_
-	tracker
+	construction
 	conversion
 	copyable
-	construction
-	observers
 	equality
+	observers
+	references
+	tracker
 )
