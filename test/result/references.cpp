@@ -14,11 +14,55 @@ struct Error {
 	explicit operator int() { return code; }
 };
 
+struct Foo {};
+
+/// Test implicit conversion to valid results of reference.
+static_assert(std::is_convertible_v<int        &, result<int &, Error>>);
+static_assert(std::is_convertible_v<int const  &, result<int &, Error>> == false);
+static_assert(std::is_convertible_v<int       &&, result<int &, Error>> == false);
+static_assert(std::is_convertible_v<int const &&, result<int &, Error>> == false);
+
+static_assert(std::is_convertible_v<int        &, result<int &&, Error>> == false);
+static_assert(std::is_convertible_v<int const  &, result<int  &, Error>> == false);
+static_assert(std::is_convertible_v<int       &&, result<int &&, Error>>);
+static_assert(std::is_convertible_v<int const &&, result<int &&, Error>> == false);
+
+static_assert(std::is_convertible_v<int        &, result<int const &, Error>>);
+static_assert(std::is_convertible_v<int const  &, result<int const &, Error>>);
+static_assert(std::is_convertible_v<int       &&, result<int const &, Error>>);
+static_assert(std::is_convertible_v<int const &&, result<int const &, Error>>);
+
+static_assert(std::is_convertible_v<int        &, result<int const &&, Error>> == false);
+static_assert(std::is_convertible_v<int const  &, result<int const &&, Error>> == false);
+static_assert(std::is_convertible_v<int       &&, result<int const &&, Error>>);
+static_assert(std::is_convertible_v<int const &&, result<int const &&, Error>>);
+
+/// Test implicit conversion to valid error of reference.
+static_assert(std::is_convertible_v<int        &, result<Foo, int &>>);
+static_assert(std::is_convertible_v<int const  &, result<Foo, int &>> == false);
+static_assert(std::is_convertible_v<int       &&, result<Foo, int &>> == false);
+static_assert(std::is_convertible_v<int const &&, result<Foo, int &>> == false);
+
+static_assert(std::is_convertible_v<int        &, result<Foo, int &&>> == false);
+static_assert(std::is_convertible_v<int const  &, result<Foo, int  &>> == false);
+static_assert(std::is_convertible_v<int       &&, result<Foo, int &&>>);
+static_assert(std::is_convertible_v<int const &&, result<Foo, int &&>> == false);
+
+static_assert(std::is_convertible_v<int        &, result<Foo, int const &>>);
+static_assert(std::is_convertible_v<int const  &, result<Foo, int const &>>);
+static_assert(std::is_convertible_v<int       &&, result<Foo, int const &>>);
+static_assert(std::is_convertible_v<int const &&, result<Foo, int const &>>);
+
+static_assert(std::is_convertible_v<int        &, result<Foo, int const &&>> == false);
+static_assert(std::is_convertible_v<int const  &, result<Foo, int const &&>> == false);
+static_assert(std::is_convertible_v<int       &&, result<Foo, int const &&>>);
+static_assert(std::is_convertible_v<int const &&, result<Foo, int const &&>>);
 
 TEST_CASE("results can hold references", "[result]") {
 	int a = 0;
 	result<int &, Error> valid{in_place_valid, a};
 	result<int &&, Error> k{in_place_valid, 5};
+
 
 	SECTION("reference refers to the same value") {
 		REQUIRE(valid);
@@ -59,7 +103,6 @@ TEST_CASE("results can hold references", "[result]") {
 		REQUIRE(moved_valid);
 		REQUIRE(&moved_valid.value() == &a);
 		REQUIRE(&*moved_valid == &a);
-
 	}
 
 	SECTION("move assign") {

@@ -27,13 +27,14 @@ public:
 	using Error = E;
 
 protected:
-	using no_ref_T = std::remove_reference_t<T>;
-	using no_ref_E = std::remove_reference_t<E>;
-	constexpr static bool T_is_ref = std::is_reference_v<T>;
-	constexpr static bool E_is_ref = std::is_reference_v<E>;
+	using no_ref_T  = std::remove_reference_t<T>;
+	using no_ref_E  = std::remove_reference_t<E>;
+	using decayed_T = std::decay_t<T>;
+	using decayed_E = std::decay_t<E>;
+	using result_storage = detail::result_storage<T, E>;
 
 	/// Result storage.
-	detail::result_storage<T, E> data_;
+	result_storage data_;
 
 	template<typename T2, typename E2>
 	friend class result;
@@ -41,26 +42,30 @@ protected:
 	/// True if T and E are not implicitly convertible to each-other.
 	constexpr static bool unambiguous_types_ = !std::is_same<T, E>{} && !std::is_convertible<E, T>{} && !std::is_convertible<T, E>{};
 
+	template<typename Arg> constexpr static bool allow_implicit_valid_conversion_ = unambiguous_types_ && std::is_constructible_v<result_storage, in_place_valid_t, Arg>;
+	template<typename Arg> constexpr static bool allow_implicit_error_conversion_ = unambiguous_types_ && std::is_constructible_v<result_storage, in_place_error_t, Arg>;
+
 	template<typename T2, typename E2>
 	constexpr static bool explicitly_convertible_ = std::is_constructible<detail::result_storage<T, E>, detail::result_storage<T2, E2>>::value;
 
 public:
 	/// Construct a valid result in place.
-	template<typename... Args>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<result_storage, in_place_valid_t, Args &&...>>>
 	result(in_place_valid_t, Args && ... args) : data_{in_place_valid, std::forward<Args>(args)...} {}
 
 	/// Construct an error result in place.
-	template<typename... Args>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<result_storage, in_place_error_t, Args &&...>>>
 	result(in_place_error_t, Args && ... args) : data_{in_place_error, std::forward<Args>(args)...} {}
 
 	/// Allow implicit conversion from T and E only if T and E are not implicitly convertible to eachother.
-	template<int  B = 1, typename = std::enable_if_t<B && !T_is_ref && unambiguous_types_>> result(std::decay_t<T> const  & value) : data_{in_place_valid, value} {}
-	template<int  B = 1, typename = std::enable_if_t<B && !T_is_ref && unambiguous_types_>> result(std::decay_t<T>       && value) : data_{in_place_valid, std::move(value)} {}
-	template<bool B = 1, typename = std::enable_if_t<B && !E_is_ref && unambiguous_types_>> result(std::decay_t<E> const  & error) : data_{in_place_error, error} {}
-	template<bool B = 1, typename = std::enable_if_t<B && !E_is_ref && unambiguous_types_>> result(std::decay_t<E>       && error) : data_{in_place_error, std::move(error)} {}
-
-	template<short B = 1, typename = std::enable_if_t<B && T_is_ref && unambiguous_types_>> result(T value) : data_{in_place_valid, value} {}
-	template<long  B = 1, typename = std::enable_if_t<B && E_is_ref && unambiguous_types_>> result(E error) : data_{in_place_error, error} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T        &>>> result(decayed_T        & value) : data_{in_place_valid, value} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T const  &>>> result(decayed_T const  & value) : data_{in_place_valid, value} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T       &&>>> result(decayed_T       && value) : data_{in_place_valid, std::move(value)} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T const &&>>> result(decayed_T const && value) : data_{in_place_valid, std::move(value)} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E        &>>> result(decayed_E        & error) : data_{in_place_error, error} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E const  &>>> result(decayed_E const  & error) : data_{in_place_error, error} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E       &&>>> result(decayed_E       && error) : data_{in_place_error, std::move(error)} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E const &&>>> result(decayed_E const && error) : data_{in_place_error, std::move(error)} {}
 
 	/// Allow explicit conversion from result<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
@@ -75,8 +80,9 @@ public:
 	explicit operator bool() const { return valid(); }
 
 	/// Get the contained value without checking if it is valid.
-	no_ref_T const & operator* () const { return data_.as_ok(); }
-	no_ref_T       & operator* ()       { return data_.as_ok(); }
+	no_ref_T const & operator* () const & { return data_.as_ok(); }
+	no_ref_T       & operator* ()       & { return data_.as_ok(); }
+	no_ref_T      && operator* ()      && { return std::move(data_.as_ok()); }
 
 	no_ref_T const * operator-> () const { return &data_.as_ok(); }
 	no_ref_T       * operator-> ()       { return &data_.as_ok(); }

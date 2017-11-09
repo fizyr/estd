@@ -7,58 +7,51 @@
 namespace estd {
 namespace detail {
 
-// Storage traits for non-reference types.
+// Wrapper to transparantly store references in result<T, E>
 template<typename T>
-struct result_storage_traits {
-	using decayed      = std::decay_t<T>;
-	using storage_type = T;
+struct lvalue_ref_wrapper {
+	T * value_;
 
-	template<typename ...Args>
-	constexpr static void construct(storage_type & storage, Args && ...args) { new (&storage) T(std::forward<Args>(args)...); }
-	constexpr static void destroy(storage_type & storage) { storage.~T(); }
+	lvalue_ref_wrapper(T & value) : value_{&value} {}
 
-	template<typename Y>
-	constexpr static void copy(storage_type & storage, Y && other) { new (&storage) T(std::forward<Y>(other)); }
+	operator T & () {
+		return *value_;
+	}
 
-	constexpr static std::decay_t<T>       & ref(std::decay_t<T>       & storage) { return storage; }
-	constexpr static std::decay_t<T> const & ref(std::decay_t<T> const & storage) { return storage; }
+	operator T const & () const {
+		return *value_;
+	}
+
 };
 
-// Storage traits for reference types.
+// Wrapper to transparantly store rvalue references in result<T, E>
 template<typename T>
-struct result_storage_traits<T &> {
-	using decayed      = std::decay_t<T>;
-	using storage_type = T *;
+struct rvalue_ref_wrapper {
+	T * value_;
 
-	constexpr static void construct(storage_type & storage, T  & value) { storage = &value; }
-	constexpr static void destroy(storage_type &) {}
+	rvalue_ref_wrapper(T && value) : value_{&value} {}
 
-	constexpr static void copy(storage_type & storage, storage_type const & other) { storage = other; }
+	operator T && () {
+		return *value_;
+	}
 
-	constexpr static T       & ref(std::decay_t<storage_type>       & storage) { return *storage; }
-	constexpr static T const & ref(std::decay_t<storage_type> const & storage) { return *storage; }
+	operator T const & () const {
+		return *value_;
+	}
 };
 
-// Storage traits for r-value reference types.
-template<typename T>
-struct result_storage_traits<T &&> {
-	using decayed      = std::decay_t<T>;
-	using storage_type = T *;
-
-	constexpr static void construct(storage_type & storage, T && value) { storage = &value; }
-	constexpr static void destroy(storage_type &) {}
-
-	constexpr static void copy(storage_type & storage, storage_type const & other) { storage = other; }
-
-	constexpr static T       && ref(std::decay_t<storage_type>       && storage) { return *storage; }
-	constexpr static T const && ref(std::decay_t<storage_type> const && storage) { return *storage; }
-};
+// Determine the storage type in a result<T, E> for some type.
+template<typename T> struct result_type_storage_impl       { using type = T; };
+template<typename T> struct result_type_storage_impl<T &>  { using type = lvalue_ref_wrapper<T>; };
+template<typename T> struct result_type_storage_impl<T &&> { using type = rvalue_ref_wrapper<T>; };
+template<typename T> using result_type_storage = typename result_type_storage_impl<T>::type;
 
 template<typename T, typename E>
 class result_storage_base;
 
+// Create a type derived from result_storage_base that is just as copyable as T and E.
 template<typename T, typename E>
-struct result_storage_type {
+struct result_storage_maybe_copyable {
 	constexpr static bool copy_constructible = std::is_copy_constructible<T>{} && std::is_copy_constructible<E>{};
 	constexpr static bool copy_assignable    = std::is_copy_assignable<T>{}    && std::is_copy_assignable<E>{};
 	constexpr static int copyable            = copy_constructible && copy_assignable;
@@ -77,12 +70,12 @@ struct result_storage_type {
 };
 
 template<typename T, typename E>
-using result_storage = typename result_storage_type<T, E>::type;
+using result_storage = typename result_storage_maybe_copyable<T, E>::type;
 
 template<typename T, typename E>
 class result_storage_base {
-	using ok_storage    = typename result_storage_traits<T>::storage_type;
-	using error_storage = typename result_storage_traits<E>::storage_type;
+	using ok_storage    = result_type_storage<T>;
+	using error_storage = result_type_storage<E>;
 
 	std::aligned_union_t<1, ok_storage, error_storage> data_;
 	bool valid_;
@@ -99,43 +92,43 @@ class result_storage_base {
 	constexpr static bool explicitly_convertible_ = std::is_constructible<T, T2>::value && std::is_constructible<E, E2>::value;
 
 public:
-	template<typename... Args>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<ok_storage, Args...>>>
 	result_storage_base(in_place_valid_t, Args && ... args) {
-		result_storage_traits<T>::construct(as_ok_storage(), std::forward<Args>(args)...);
+		new (&as_ok_storage()) ok_storage(std::forward<Args>(args)...);
 		valid_ = true;
 	}
 
-	template<typename... Args>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<error_storage, Args...>>>
 	result_storage_base(in_place_error_t, Args && ... args) {
-		result_storage_traits<E>::construct(as_error_storage(), std::forward<Args>(args)...);
+		new (&as_error_storage()) error_storage(std::forward<Args>(args)...);
 		valid_ = false;
 	}
 
 	result_storage_base(result_storage_base const & other) {
 		valid_ = other.valid_;
-		if (valid_) result_storage_traits<T>::copy(as_ok_storage(),    other.as_ok_storage());
-		else        result_storage_traits<E>::copy(as_error_storage(), other.as_error_storage());
+		if (valid_) new (&as_ok_storage())       ok_storage(other.as_ok_storage());
+		else        new (&as_error_storage()) error_storage(other.as_error_storage());
 	}
 
 	result_storage_base(result_storage_base && other) {
 		valid_ = other.valid_;
-		if (valid_) result_storage_traits<T>::copy(as_ok_storage(),    std::move(other.as_ok_storage()));
-		else        result_storage_traits<E>::copy(as_error_storage(), std::move(other.as_error_storage()));
+		if (valid_) new (&as_ok_storage())       ok_storage(std::move(other.as_ok_storage()));
+		else        new (&as_error_storage()) error_storage(std::move(other.as_error_storage()));
 	}
 
 	/// Allow explicit conversion from ErrorOr<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> const & other) {
 		valid_ = other.valid_;
-		if (valid_) result_storage_traits<T>::copy(as_ok_storage(),    other.as_ok_storage());
-		else        result_storage_traits<E>::copy(as_error_storage(), other.as_error_storage());
+		if (valid_) new (&as_ok_storage())       ok_storage(other.as_ok_storage());
+		else        new (&as_error_storage()) error_storage(other.as_error_storage());
 	}
 
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> && other) {
 		valid_ = other.valid_;
-		if (valid_) result_storage_traits<T>::copy(as_ok_storage(),    std::move(other.as_ok_storage()));
-		else        result_storage_traits<E>::copy(as_error_storage(), std::move(other.as_error_storage()));
+		if (valid_) new (&as_ok_storage())       ok_storage(std::move(other.as_ok_storage()));
+		else        new (&as_error_storage()) error_storage(std::move(other.as_error_storage()));
 	}
 
 	result_storage_base & operator= (result_storage_base const & other) {
@@ -161,8 +154,8 @@ public:
 	}
 
 	~result_storage_base() {
-		if (valid_) result_storage_traits<T>::destroy(as_ok_storage());
-		else        result_storage_traits<E>::destroy(as_error_storage());
+		if (valid_)    as_ok_storage().~ok_storage();
+		else        as_error_storage().~error_storage();
 	}
 
 	template<typename T2, typename E2>
@@ -179,11 +172,11 @@ public:
 
 	bool valid() const { return valid_; }
 
-	std::remove_reference_t<T>       & as_ok()       { return result_storage_traits<T>::ref(as_ok_storage());}
-	std::remove_reference_t<T> const & as_ok() const { return result_storage_traits<T>::ref(as_ok_storage()); }
+	std::remove_reference_t<T>       & as_ok()       { return as_ok_storage();}
+	std::remove_reference_t<T> const & as_ok() const { return as_ok_storage(); }
 
-	std::remove_reference_t<E>       & as_error()       { return result_storage_traits<E>::ref(as_error_storage()); }
-	std::remove_reference_t<E> const & as_error() const { return result_storage_traits<E>::ref(as_error_storage()); }
+	std::remove_reference_t<E>       & as_error()       { return as_error_storage(); }
+	std::remove_reference_t<E> const & as_error() const { return as_error_storage(); }
 
 private:
 	ok_storage          & as_ok_storage()          { return reinterpret_cast<ok_storage          &>(data_); }
