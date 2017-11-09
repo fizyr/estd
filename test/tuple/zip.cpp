@@ -1,9 +1,7 @@
 #include "tuple/zip.hpp"
 
-#include "../static_assert_same.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include "../catch.hpp"
+#include "../static_assert_same.hpp"
 
 namespace estd {
 

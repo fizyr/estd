@@ -1,10 +1,8 @@
 #include "tuple.hpp"
 #include "utility/make_ref.hpp"
 
-#include "../static_assert_same.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include "../catch.hpp"
+#include "../static_assert_same.hpp"
 
 namespace estd {
 

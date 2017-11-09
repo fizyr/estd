@@ -1,7 +1,7 @@
 #include "range/enumerate.hpp"
 
-#define CATCH_CONFIG_MAIN
 #include "../catch.hpp"
+#include "../static_assert_same.hpp"
 
 #include <vector>
 

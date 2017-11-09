@@ -1,5 +1,8 @@
+add_library(test_main main.cpp)
+
 function(declare_test name)
 	add_executable(${name} ${ARGN})
+	target_link_libraries(${name} PRIVATE test_main)
 	add_custom_target(run_${prefix}${test} COMMAND ${name})
 	add_dependencies(run_tests run_${name})
 	add_test(NAME ${name} COMMAND ${name})
