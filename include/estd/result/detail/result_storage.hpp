@@ -11,33 +11,19 @@ namespace detail {
 template<typename T>
 struct lvalue_ref_wrapper {
 	T * value_;
-
 	lvalue_ref_wrapper(T & value) : value_{&value} {}
-
-	operator T & () {
-		return *value_;
-	}
-
-	operator T const & () const {
-		return *value_;
-	}
-
+	operator T        & ()        & { return *value_; }
+	operator T const  & () const  & { return *value_; }
+	operator T       && ()       && { return std::move(*value_); }
 };
 
 // Wrapper to transparantly store rvalue references in result<T, E>
 template<typename T>
 struct rvalue_ref_wrapper {
 	T * value_;
-
 	rvalue_ref_wrapper(T && value) : value_{&value} {}
-
-	operator T && () {
-		return *value_;
-	}
-
-	operator T const & () const {
-		return *value_;
-	}
+	operator T       && ()       { return *value_; }
+	operator T const && () const { return *value_; }
 };
 
 // Determine the storage type in a result<T, E> for some type.
@@ -74,88 +60,87 @@ using result_storage = typename result_storage_maybe_copyable<T, E>::type;
 
 template<typename T, typename E>
 class result_storage_base {
-	using ok_storage    = result_type_storage<T>;
-	using error_storage = result_type_storage<E>;
+	using Valid = result_type_storage<T>;
+	using Error = result_type_storage<E>;
 
-	std::aligned_union_t<1, ok_storage, error_storage> data_;
-	bool valid_;
+	union {
+		Valid valid_;
+		Error error_;
+	};
+
+	bool is_valid_;
 
 	template<typename T2, typename E2>
 	friend class result_storage_base;
 
 	template<typename T2, typename E2>
-	constexpr static bool implicitly_convertible_() {
-		return std::is_convertible<T2, T>{} && std::is_convertible<E2, E>{};
-	}
-
-	template<typename T2, typename E2>
 	constexpr static bool explicitly_convertible_ = std::is_constructible<T, T2>::value && std::is_constructible<E, E2>::value;
 
 public:
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<ok_storage, Args...>>>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<T, Args...>>>
 	result_storage_base(in_place_valid_t, Args && ... args) {
-		new (&as_ok_storage()) ok_storage(std::forward<Args>(args)...);
-		valid_ = true;
+		new (&valid_) Valid(std::forward<Args>(args)...);
+		is_valid_ = true;
 	}
 
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<error_storage, Args...>>>
+	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<E, Args...>>>
 	result_storage_base(in_place_error_t, Args && ... args) {
-		new (&as_error_storage()) error_storage(std::forward<Args>(args)...);
-		valid_ = false;
+		new (&error_) Error(std::forward<Args>(args)...);
+		is_valid_ = false;
 	}
 
 	result_storage_base(result_storage_base const & other) {
-		valid_ = other.valid_;
-		if (valid_) new (&as_ok_storage())       ok_storage(other.as_ok_storage());
-		else        new (&as_error_storage()) error_storage(other.as_error_storage());
+		is_valid_ = other.is_valid_;
+		if (is_valid_) new (&valid_) Valid(other.valid_);
+		else           new (&error_) Error(other.error_);
 	}
 
 	result_storage_base(result_storage_base && other) {
-		valid_ = other.valid_;
-		if (valid_) new (&as_ok_storage())       ok_storage(std::move(other.as_ok_storage()));
-		else        new (&as_error_storage()) error_storage(std::move(other.as_error_storage()));
+		is_valid_ = other.is_valid_;
+		if (is_valid_) new (&valid_) Valid(std::move(other.valid_));
+		else           new (&error_) Error(std::move(other.error_));
 	}
 
 	/// Allow explicit conversion from ErrorOr<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> const & other) {
-		valid_ = other.valid_;
-		if (valid_) new (&as_ok_storage())       ok_storage(other.as_ok_storage());
-		else        new (&as_error_storage()) error_storage(other.as_error_storage());
+		is_valid_ = other.is_valid_;
+		if (is_valid_) new (&valid_) Valid(other.valid_);
+		else          new (&error_) Error(other.error_);
 	}
 
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> && other) {
-		valid_ = other.valid_;
-		if (valid_) new (&as_ok_storage())       ok_storage(std::move(other.as_ok_storage()));
-		else        new (&as_error_storage()) error_storage(std::move(other.as_error_storage()));
+		is_valid_ = other.is_valid_;
+		if (is_valid_) new (&valid_) Valid(std::move(other.valid_));
+		else           new (&error_) Error(std::move(other.error_));
 	}
 
 	result_storage_base & operator= (result_storage_base const & other) {
-		if (valid_ != other.valid_) {
+		if (is_valid_ != other.is_valid_) {
 			this->~result_storage_base();
 			new (this) result_storage_base(other);
 		} else {
-			if (valid_) as_ok_storage()    = other.as_ok_storage();
-			else        as_error_storage() = other.as_error_storage();
+			if (is_valid_) valid_= other.valid_;
+			else           error_= other.error_;
 		}
 		return *this;
 	}
 
 	result_storage_base & operator= (result_storage_base && other) {
-		if (valid_ != other.valid_) {
+		if (is_valid_ != other.is_valid_) {
 			this->~result_storage_base();
 			new (this) result_storage_base(std::move(other));
 		} else {
-			if (valid_) as_ok_storage()    = std::move(other.as_ok_storage());
-			else        as_error_storage() = std::move(other.as_error_storage());
+			if (is_valid_) valid_= std::move(other.valid_);
+			else           error_= std::move(other.error_);
 		}
 		return *this;
 	}
 
 	~result_storage_base() {
-		if (valid_)    as_ok_storage().~ok_storage();
-		else        as_error_storage().~error_storage();
+		if (is_valid_) valid_.~Valid();
+		else           error_.~Error();
 	}
 
 	template<typename T2, typename E2>
@@ -170,19 +155,15 @@ public:
 		return !(*this == other);
 	}
 
-	bool valid() const { return valid_; }
+	bool valid() const { return is_valid_; }
 
-	std::remove_reference_t<T>       & as_ok()       { return as_ok_storage();}
-	std::remove_reference_t<T> const & as_ok() const { return as_ok_storage(); }
+	T        & as_ok()        & { return valid_; }
+	T const  & as_ok() const  & { return valid_; }
+	T       && as_ok() const && { return valid_; }
 
-	std::remove_reference_t<E>       & as_error()       { return as_error_storage(); }
-	std::remove_reference_t<E> const & as_error() const { return as_error_storage(); }
-
-private:
-	ok_storage          & as_ok_storage()          { return reinterpret_cast<ok_storage          &>(data_); }
-	ok_storage    const & as_ok_storage()    const { return reinterpret_cast<ok_storage    const &>(data_); }
-	error_storage       & as_error_storage()       { return reinterpret_cast<error_storage       &>(data_); }
-	error_storage const & as_error_storage() const { return reinterpret_cast<error_storage const &>(data_); }
+	E        & as_error()        & { return error_; }
+	E const  & as_error() const  & { return error_; }
+	E       && as_error() const && { return error_; }
 };
 
 
