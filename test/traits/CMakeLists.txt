@@ -4,4 +4,5 @@ declare_compile_tests(test_${PROJECT_NAME}_traits_
 	is_tuple
 	iterator
 	replace_type
+	type_traits
 )
