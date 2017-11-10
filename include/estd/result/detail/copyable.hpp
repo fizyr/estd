@@ -35,10 +35,7 @@ struct non_copyable<true, false> {
 	non_copyable & operator=(non_copyable       &&) = default;
 };
 
-template<>
-struct non_copyable<true, true> {
-	non_copyable() = default;
-};
+template<> struct non_copyable<true, true> {};
 
 template<>
 struct non_movable<false,false> {
@@ -61,10 +58,6 @@ struct non_movable<true, false> {
 	non_movable & operator=(non_movable &&) = delete;
 };
 
-template<>
-struct non_movable<true, true> {
-	non_movable() = default;
-};
-
+template<> struct non_movable<true, true> {};
 
 }}

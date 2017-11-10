@@ -16,58 +16,86 @@ struct Error {
 
 struct Foo {};
 
-/// Test implicit conversion to valid results of reference.
-static_assert(std::is_convertible_v<int        &, result<int &, Error>>);
-static_assert(std::is_convertible_v<int const  &, result<int &, Error>> == false);
-static_assert(std::is_convertible_v<int       &&, result<int &, Error>> == false);
-static_assert(std::is_convertible_v<int const &&, result<int &, Error>> == false);
+template<typename R, typename T, typename const_T, typename rvalue_T>
+void test_valid_observers() {
+	static_assert_same<decltype(*std::declval<R       &>()),        T>();
+	static_assert_same<decltype(*std::declval<R const &>()),  const_T>();
+	static_assert_same<decltype(*std::declval<R      &&>()), rvalue_T>();
 
-static_assert(std::is_convertible_v<int        &, result<int &&, Error>> == false);
-static_assert(std::is_convertible_v<int const  &, result<int  &, Error>> == false);
-static_assert(std::is_convertible_v<int       &&, result<int &&, Error>>);
-static_assert(std::is_convertible_v<int const &&, result<int &&, Error>> == false);
+	static_assert_same<decltype(std::declval<R       &>().value()),        T>();
+	static_assert_same<decltype(std::declval<R const &>().value()),  const_T>();
+	static_assert_same<decltype(std::declval<R      &&>().value()), rvalue_T>();
 
-static_assert(std::is_convertible_v<int        &, result<int const &, Error>>);
-static_assert(std::is_convertible_v<int const  &, result<int const &, Error>>);
-static_assert(std::is_convertible_v<int       &&, result<int const &, Error>>);
-static_assert(std::is_convertible_v<int const &&, result<int const &, Error>>);
+	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval<       T>())),        T>();
+	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval< const_T>())),  const_T>();
+	static_assert_same<decltype(std::declval<R const &>().value_or(std::declval< const_T>())),  const_T>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<rvalue_T>())), rvalue_T>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<       T>())),        T>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval< const_T>())),  const_T>();
+}
+template<typename R, typename E, typename const_E, typename rvalue_E>
+void test_error_observers() {
+	static_assert_same<decltype(std::declval<R       &>().error_unchecked()),        E>();
+	static_assert_same<decltype(std::declval<R const &>().error_unchecked()),  const_E>();
+	static_assert_same<decltype(std::declval<R      &&>().error_unchecked()), rvalue_E>();
 
-static_assert(std::is_convertible_v<int        &, result<int const &&, Error>> == false);
-static_assert(std::is_convertible_v<int const  &, result<int const &&, Error>> == false);
-static_assert(std::is_convertible_v<int       &&, result<int const &&, Error>>);
-static_assert(std::is_convertible_v<int const &&, result<int const &&, Error>>);
+	static_assert_same<decltype(std::declval<R       &>().error()),        E>();
+	static_assert_same<decltype(std::declval<R const &>().error()),  const_E>();
+	static_assert_same<decltype(std::declval<R      &&>().error()), rvalue_E>();
 
-/// Test implicit conversion to valid error of reference.
-static_assert(std::is_convertible_v<int        &, result<Foo, int &>>);
-static_assert(std::is_convertible_v<int const  &, result<Foo, int &>> == false);
-static_assert(std::is_convertible_v<int       &&, result<Foo, int &>> == false);
-static_assert(std::is_convertible_v<int const &&, result<Foo, int &>> == false);
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<       E>())),        E>();
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval< const_E>())),  const_E>();
+	static_assert_same<decltype(std::declval<R const &>().error_or(std::declval< const_E>())),  const_E>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<rvalue_E>())), rvalue_E>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<       E>())),        E>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval< const_E>())),  const_E>();
+}
 
-static_assert(std::is_convertible_v<int        &, result<Foo, int &&>> == false);
-static_assert(std::is_convertible_v<int const  &, result<Foo, int  &>> == false);
-static_assert(std::is_convertible_v<int       &&, result<Foo, int &&>>);
-static_assert(std::is_convertible_v<int const &&, result<Foo, int &&>> == false);
+void test() {
+	/// Test implicit conversion to valid results of reference.
+	static_assert(std::is_convertible_v<int        &, result<int &, Error>>);
+	static_assert(std::is_convertible_v<int const  &, result<int &, Error>> == false);
+	static_assert(std::is_convertible_v<int       &&, result<int &, Error>> == false);
+	static_assert(std::is_convertible_v<int const &&, result<int &, Error>> == false);
 
-static_assert(std::is_convertible_v<int        &, result<Foo, int const &>>);
-static_assert(std::is_convertible_v<int const  &, result<Foo, int const &>>);
-static_assert(std::is_convertible_v<int       &&, result<Foo, int const &>>);
-static_assert(std::is_convertible_v<int const &&, result<Foo, int const &>>);
+	static_assert(std::is_convertible_v<int        &, result<int const &, Error>>);
+	static_assert(std::is_convertible_v<int const  &, result<int const &, Error>>);
+	static_assert(std::is_convertible_v<int       &&, result<int const &, Error>>);
+	static_assert(std::is_convertible_v<int const &&, result<int const &, Error>>);
 
-static_assert(std::is_convertible_v<int        &, result<Foo, int const &&>> == false);
-static_assert(std::is_convertible_v<int const  &, result<Foo, int const &&>> == false);
-static_assert(std::is_convertible_v<int       &&, result<Foo, int const &&>>);
-static_assert(std::is_convertible_v<int const &&, result<Foo, int const &&>>);
+	/// Test implicit conversion to valid error of reference.
+	static_assert(std::is_convertible_v<int        &, result<Foo, int &>>);
+	static_assert(std::is_convertible_v<int const  &, result<Foo, int &>> == false);
+	static_assert(std::is_convertible_v<int       &&, result<Foo, int &>> == false);
+	static_assert(std::is_convertible_v<int const &&, result<Foo, int &>> == false);
+
+	static_assert(std::is_convertible_v<int        &, result<Foo, int const &>>);
+	static_assert(std::is_convertible_v<int const  &, result<Foo, int const &>>);
+	static_assert(std::is_convertible_v<int       &&, result<Foo, int const &>>);
+	static_assert(std::is_convertible_v<int const &&, result<Foo, int const &>>);
+
+	/// Test return type of observers.
+	test_valid_observers<result<int       &, Foo>, int       &, int const &, int       &>();
+	test_valid_observers<result<int const &, Foo>, int const &, int const &, int const &>();
+	test_error_observers<result<Foo, int       &>, int       &, int const &, int       &>();
+	test_error_observers<result<Foo, int const &>, int const &, int const &, int const &>();
+
+	test_valid_observers<result<int      , Foo>, int       &, int const &, int       &&>();
+	test_valid_observers<result<int const, Foo>, int const &, int const &, int const &&>();
+	test_error_observers<result<Foo, int      >, int       &, int const &, int       &&>();
+	test_error_observers<result<Foo, int const>, int const &, int const &, int const &&>();
+
+}
 
 TEST_CASE("results can hold references", "[result]") {
 	int a = 0;
 	result<int &, Error> valid{in_place_valid, a};
-	result<int &&, Error> k{in_place_valid, 5};
-
 
 	SECTION("reference refers to the same value") {
 		REQUIRE(valid);
 		REQUIRE(&valid.value() == &a);
 		REQUIRE(&*valid == &a);
+
 	}
 
 	SECTION("copy construct") {

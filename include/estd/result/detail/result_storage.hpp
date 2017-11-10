@@ -1,4 +1,5 @@
 #include "../in_place.hpp"
+#include "../../traits/type_traits.hpp"
 #include "copyable.hpp"
 
 #include <type_traits>
@@ -15,6 +16,7 @@ struct lvalue_ref_wrapper {
 	operator T        & ()        & { return *value_; }
 	operator T const  & () const  & { return *value_; }
 	operator T       && ()       && { return std::move(*value_); }
+	operator T const && () const && { return std::move(*value_); }
 };
 
 // Wrapper to transparantly store rvalue references in result<T, E>
@@ -22,13 +24,15 @@ template<typename T>
 struct rvalue_ref_wrapper {
 	T * value_;
 	rvalue_ref_wrapper(T && value) : value_{&value} {}
-	operator T       && ()       { return *value_; }
-	operator T const && () const { return *value_; }
+	operator T        & ()        & { return *value_; }
+	operator T const  & () const  & { return *value_; }
+	operator T       && ()       && { return std::move(*value_); }
+	operator T const && () const && { return std::move(*value_); }
 };
 
 // Determine the storage type in a result<T, E> for some type.
 template<typename T> struct result_type_storage_impl       { using type = T; };
-template<typename T> struct result_type_storage_impl<T &>  { using type = lvalue_ref_wrapper<T>; };
+template<typename T> struct result_type_storage_impl<T  &> { using type = lvalue_ref_wrapper<T>; };
 template<typename T> struct result_type_storage_impl<T &&> { using type = rvalue_ref_wrapper<T>; };
 template<typename T> using result_type_storage = typename result_type_storage_impl<T>::type;
 
@@ -147,7 +151,7 @@ public:
 	bool operator==(result_storage_base<T2, E2> const & other) const {
 		if (valid() != other.valid()) return false;
 		if (!valid()) return as_error() == other.as_error();
-		return as_ok() == other.as_ok();
+		return as_valid() == other.as_valid();
 	}
 
 	template<typename T2, typename E2>
@@ -157,13 +161,15 @@ public:
 
 	bool valid() const { return is_valid_; }
 
-	T        & as_ok()        & { return valid_; }
-	T const  & as_ok() const  & { return valid_; }
-	T       && as_ok() const && { return valid_; }
+	add_lref <T> as_valid()        & { return valid_; }
+	add_rref <T> as_valid()       && { return valid_; }
+	add_clref<T> as_valid() const  & { return valid_; }
+	add_crref<T> as_valid() const && { return valid_; }
 
-	E        & as_error()        & { return error_; }
-	E const  & as_error() const  & { return error_; }
-	E       && as_error() const && { return error_; }
+	add_lref <E> as_error()        & { return error_; }
+	add_rref <E> as_error()       && { return error_; }
+	add_clref<E> as_error() const  & { return error_; }
+	add_crref<E> as_error() const && { return error_; }
 };
 
 
