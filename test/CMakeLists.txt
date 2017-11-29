@@ -25,6 +25,7 @@ function(declare_compile_tests prefix)
 	endforeach()
 endfunction()
 
+add_subdirectory(convert)
 add_subdirectory(range)
 add_subdirectory(result)
 add_subdirectory(traits)
