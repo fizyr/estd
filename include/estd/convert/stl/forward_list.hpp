@@ -20,7 +20,7 @@ template<typename F, typename T>
 std::enable_if_t<can_convert<F, T>::value, std::forward_list<T>>
 convert(std::forward_list<F> && from, To<std::forward_list<T>>) {
 	std::forward_list<T> result;
-	for (F && elem : from) result.push_back(to<T>(std::move(elem)));
+	for (F & elem : from) result.push_back(to<T>(std::move(elem)));
 	return result;
 }
 
@@ -42,7 +42,7 @@ template<typename F, typename T, typename E>
 std::enable_if_t<can_parse<F, T, E>::value, result<std::forward_list<T>, E>>
 convert(std::forward_list<F> && from, Parse<std::forward_list<T>, E>) {
 	std::forward_list<T> result;
-	for (F && elem : from) {
+	for (F & elem : from) {
 		estd::result<T, E> converted = parse<T, E>(std::move(elem));
 		if (!converted) return converted.error_unchecked();
 		result.push_back(std::move(*converted));

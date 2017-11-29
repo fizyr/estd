@@ -22,7 +22,7 @@ std::enable_if_t<can_convert<F, T>::value, std::vector<T>>
 convert(std::vector<F> && from, To<std::vector<T>>) {
 	std::vector<T> result;
 	result.reserve(from.size());
-	for (F && elem : from) result.push_back(to<T>(std::move(elem)));
+	for (F & elem : from) result.push_back(to<T>(std::move(elem)));
 	return result;
 }
 
@@ -46,7 +46,7 @@ std::enable_if_t<can_parse<F, T, E>::value, result<std::vector<T>, E>>
 convert(std::vector<F> && from, Parse<std::vector<T>, E>) {
 	std::vector<T> result;
 	result.reserve(from.size());
-	for (F && elem : from) {
+	for (F & elem : from) {
 		estd::result<T, E> converted = parse<T, E>(std::move(elem));
 		if (!converted) return converted.error_unchecked();
 		result.push_back(std::move(*converted));
