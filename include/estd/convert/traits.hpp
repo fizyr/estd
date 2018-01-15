@@ -7,12 +7,14 @@
 namespace estd {
 
 namespace detail {
+	// check if convert(F, To<T>) is a valid expression
 	template<typename F, typename T, typename = std::void_t<>>
 	struct can_convert : std::false_type{};
 
 	template<typename F, typename T>
 	struct can_convert<F, T, std::void_t<decltype(convert(std::declval<F>(), To<T>{}))>> : std::true_type{};
 
+	// check if convert(F, Parse<T, E>) is a valid expression
 	template<typename F, typename T, typename E, typename = std::void_t<>>
 	struct can_parse : std::false_type{};
 
