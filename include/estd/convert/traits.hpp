@@ -7,35 +7,35 @@
 namespace estd {
 
 namespace detail {
-	// check if convert(F, To<T>) is a valid expression
-	template<typename F, typename T, typename = std::void_t<>>
-	struct can_convert : std::false_type{};
+	// check if convert(F, Tag) is a valid expression
+	template<typename F, typename Tag, typename = std::void_t<>>
+	struct can_convert_tagged : std::false_type{};
 
-	template<typename F, typename T>
-	struct can_convert<F, T, std::void_t<decltype(convert(std::declval<F>(), To<T>{}))>> : std::true_type{};
-
-	// check if convert(F, Parse<T, E>) is a valid expression
-	template<typename F, typename T, typename E, typename = std::void_t<>>
-	struct can_parse : std::false_type{};
-
-	template<typename F, typename T, typename E>
-	struct can_parse<F, T, E, std::void_t<decltype(convert(std::declval<F>(), Parse<T, E>{}))>> : std::true_type{};
+	template<typename F, typename Tag>
+	struct can_convert_tagged<F, Tag, std::void_t<decltype(convert(std::declval<F>(), Tag{}))>> : std::true_type{};
 }
 
 /// Check if an errorless conversion exists for the given types.
-template<typename From, typename To>
-struct can_convert : detail::can_convert<From, To>{};
+template<typename From, typename Tag>
+struct can_convert_tagged : detail::can_convert_tagged<From, Tag>{};
+
+template<typename From, typename Tag>
+constexpr bool can_convert_tagged_v = can_convert_tagged<From, Tag>::value;
 
 /// Check if an errorless conversion exists for the given types.
-template<typename From, typename To>
-constexpr bool can_convert_v = can_convert<From, To>::value;
+template<typename From, typename Target>
+struct can_convert : detail::can_convert_tagged<From, To<Target>>{};
+
+/// Check if an errorless conversion exists for the given types.
+template<typename From, typename Target>
+constexpr bool can_convert_v = can_convert<From, Target>::value;
 
 /// Check if a conversion that might fail exists for the given types.
-template<typename From, typename To, typename Error>
-struct can_parse : detail::can_parse<From, To, Error>{};
+template<typename From, typename Target, typename Error>
+struct can_parse : can_convert_tagged<From, Parse<Target, Error>>{};
 
 /// Check if an errorless conversion exists for the given types.
-template<typename From, typename To, typename Error>
-constexpr bool can_parse_v = can_parse<From, To, Error>::value;
+template<typename From, typename Target, typename Error>
+constexpr bool can_parse_v = can_parse<From, Target, Error>::value;
 
 }
