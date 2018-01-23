@@ -40,7 +40,7 @@ namespace detail {
 	 * Otherwise, all void return values are mapped to empty_t values.
 	 */
 	template<typename F, typename Tuple, std::size_t ...I>
-	constexpr auto tuple_transform_impl(Tuple && tuple, std::index_sequence<I...>, F && f) {
+	constexpr auto tuple_transform_decay_impl(Tuple && tuple, std::index_sequence<I...>, F && f) {
 		using std::get;
 		constexpr bool all_void = (std::is_same_v<decltype(std::invoke(f, get<I>(std::forward<Tuple>(tuple)))), void> && ...);
 		if constexpr(all_void) {
@@ -72,8 +72,8 @@ namespace detail {
 
 /// Create a tuple of values by applying a function to each value, and passing the results to std::make_tuple (thus decaying the value types).
 template<typename Tuple, typename F>
-constexpr auto tuple_transform(Tuple && tuple, F && f) {
-	return detail::tuple_transform_impl(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
+constexpr auto tuple_transform_decay(Tuple && tuple, F && f) {
+	return detail::tuple_transform_decay_impl(std::forward<Tuple>(tuple), tuple_index_sequence<Tuple>(), std::forward<F>(f));
 }
 
 /// Create a tuple of values by applying a function to each value, without decaying the result types.
