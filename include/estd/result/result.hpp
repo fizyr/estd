@@ -50,11 +50,11 @@ protected:
 
 public:
 	/// Construct a valid result in place.
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<result_storage, in_place_valid_t, Args &&...>>>
+	template<typename... Args>
 	result(in_place_valid_t, Args && ... args) : data_{in_place_valid, std::forward<Args>(args)...} {}
 
 	/// Construct an error result in place.
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<result_storage, in_place_error_t, Args &&...>>>
+	template<typename... Args>
 	result(in_place_error_t, Args && ... args) : data_{in_place_error, std::forward<Args>(args)...} {}
 
 	/// Allow implicit conversion from T and E only if T and E are not implicitly convertible to eachother.

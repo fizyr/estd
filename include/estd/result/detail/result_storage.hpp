@@ -81,13 +81,13 @@ class result_storage_base {
 	constexpr static bool explicitly_convertible_ = std::is_constructible<T, T2>::value && std::is_constructible<E, E2>::value;
 
 public:
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<T, Args...>>>
+	template<typename... Args>
 	result_storage_base(in_place_valid_t, Args && ... args) {
 		new (&valid_) Valid(std::forward<Args>(args)...);
 		is_valid_ = true;
 	}
 
-	template<typename... Args, typename = std::enable_if_t<std::is_constructible_v<E, Args...>>>
+	template<typename... Args>
 	result_storage_base(in_place_error_t, Args && ... args) {
 		new (&error_) Error(std::forward<Args>(args)...);
 		is_valid_ = false;
