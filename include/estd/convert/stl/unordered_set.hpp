@@ -1,53 +1,64 @@
 #pragma once
-#include "../convert.hpp"
+#include "../traits.hpp"
 
-#include <type_traits>
 #include <unordered_set>
+#include <type_traits>
 
 namespace estd {
 
 /// Convert a unordered_multiset<F> to unordered_multiset<T>.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_convert<F, T>::value, std::unordered_multiset<T>>
-convert(std::unordered_multiset<F> const & from, To<std::unordered_multiset<T>>) {
-	std::unordered_multiset<T> result;
-	for (F const & elem : from) result.insert(to<T>(elem));
-	return result;
-}
+template<typename F, typename T, typename Tag>
+struct conversion<std::unordered_multiset<F>, std::unordered_multiset<T>, Tag> {
+	using From = std::unordered_multiset<F>;
+	using To   = std::unordered_multiset<T>;
 
-/// Convert a unordered_multiset<F> to unordered_multiset<T> while moving all elements.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_convert<F, T>::value, std::unordered_multiset<T>>
-convert(std::unordered_multiset<F> && from, To<std::unordered_multiset<T>>) {
-	std::unordered_multiset<T> result;
-	for (F & elem : from) result.insert(to<T>(std::move(elem)));
-	return result;
-}
+	static constexpr bool impossible = !can_convert<F, T, Tag>;
 
-/// Parse a unordered_multiset<F> to unordered_multiset<T>.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_parse<F, T, E>::value, result<std::unordered_multiset<T>, E>>
-convert(std::unordered_multiset<F> const & from, Parse<std::unordered_multiset<T>, E>) {
-	std::unordered_multiset<T> result;
-	for (F const & elem : from) {
-		estd::result<T, E> converted = parse<T>(elem);
-		if (!converted) return converted.error_unchecked();
-		auto [i, inserted] = result.insert(std::move(*converted));
+	static To perform(From const & from) {
+		static_assert(!impossible, "no conversion available for F and T");
+		To result;
+		for (T const & elem : from) result.push_back(convert<T, Tag>(elem));
+		return result;
 	}
-	return result;
-}
 
-/// Parse a unordered_multiset<F> to unordered_multiset<T> while moving all elements.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_parse<F, T, E>::value, result<std::unordered_multiset<T>, E>>
-convert(std::unordered_multiset<F> && from, Parse<std::unordered_multiset<T>, E>) {
-	std::unordered_multiset<T> result;
-	for (F & elem : from) {
-		estd::result<T, E> converted = parse<T>(std::move(elem));
-		if (!converted) return converted.error_unchecked();
-		auto [i, inserted] = result.insert(std::move(*converted));
+	static To perform(From && from) {
+		static_assert(!impossible, "no conversion available for F and T");
+		To result;
+		for (T && elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
+		return result;
 	}
-	return result;
-}
+};
+
+/// Parse a unordered_multiset<F> to ErrorOr<unordered_multiset<T>>.
+template<typename F, typename T, typename E, typename Tag>
+struct conversion<std::unordered_multiset<F>, result<std::unordered_multiset<T>, E>, Tag> {
+	using From   = std::unordered_multiset<F>;
+	using Raw    = std::unordered_multiset<T>;
+	using To     = result<Raw, E>;
+
+	static constexpr bool impossible = !can_parse<F, T, E, Tag>;
+
+	static To convert(From const & from) {
+		static_assert(!impossible, "no conversion available for F and result<T, E>");
+		Raw result;
+		for (F const & elem : from) {
+			estd::result<T, E> converted = parse<T, E>(elem);
+			if (!converted) return converted.error_unchecked();
+			result.push_back(std::move(*converted));
+		}
+		return result;
+	}
+
+	static To convert(From && from) {
+		static_assert(!impossible, "no conversion available for F and result<T, E>");
+		Raw result;
+		for (F const & elem : from) {
+			estd::result<T, E> converted = parse<T, E>(std::move(elem));
+			if (!converted) return converted.error_unchecked();
+			result.push_back(std::move(*converted));
+		}
+		return result;
+	}
+};
 
 }

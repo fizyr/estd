@@ -1,5 +1,5 @@
 #pragma once
-#include "../convert.hpp"
+#include "../traits.hpp"
 
 #include <forward_list>
 #include <type_traits>
@@ -7,47 +7,58 @@
 namespace estd {
 
 /// Convert a forward_list<F> to forward_list<T>.
-template<typename F, typename T>
-std::enable_if_t<can_convert<F, T>::value, std::forward_list<T>>
-convert(std::forward_list<F> const & from, To<std::forward_list<T>>) {
-	std::forward_list<T> result;
-	for (F const & elem : from) result.push_back(to<T>(elem));
-	return result;
-}
+template<typename F, typename T, typename Tag>
+struct conversion<std::forward_list<F>, std::forward_list<T>, Tag> {
+	using From = std::forward_list<F>;
+	using To   = std::forward_list<T>;
 
-/// Convert a forward_list<F> to forward_list<T> while moving all elements.
-template<typename F, typename T>
-std::enable_if_t<can_convert<F, T>::value, std::forward_list<T>>
-convert(std::forward_list<F> && from, To<std::forward_list<T>>) {
-	std::forward_list<T> result;
-	for (F & elem : from) result.push_back(to<T>(std::move(elem)));
-	return result;
-}
+	static constexpr bool impossible = !can_convert<F, T, Tag>;
 
-/// Parse a forward_list<F> to forward_list<T>.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_parse<F, T, E>::value, result<std::forward_list<T>, E>>
-convert(std::forward_list<F> const & from, Parse<std::forward_list<T>, E>) {
-	std::forward_list<T> result;
-	for (F const & elem : from) {
-		estd::result<T, E> converted = parse<T, E>(elem);
-		if (!converted) return converted.error_unchecked();
-		result.push_back(std::move(*converted));
+	static To perform(From const & from) {
+		static_assert(!impossible, "no conversion available for F and T");
+		To result;
+		for (T const & elem : from) result.push_back(convert<T, Tag>(elem));
+		return result;
 	}
-	return result;
-}
 
-/// Parse a forward_list<F> to forward_list<T> while moving all elements.
-template<typename F, typename T, typename E>
-std::enable_if_t<can_parse<F, T, E>::value, result<std::forward_list<T>, E>>
-convert(std::forward_list<F> && from, Parse<std::forward_list<T>, E>) {
-	std::forward_list<T> result;
-	for (F & elem : from) {
-		estd::result<T, E> converted = parse<T, E>(std::move(elem));
-		if (!converted) return converted.error_unchecked();
-		result.push_back(std::move(*converted));
+	static To perform(From && from) {
+		static_assert(!impossible, "no conversion available for F and T");
+		To result;
+		for (T && elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
+		return result;
 	}
-	return result;
-}
+};
+
+/// Parse a forward_list<F> to ErrorOr<forward_list<T>>.
+template<typename F, typename T, typename E, typename Tag>
+struct conversion<std::forward_list<F>, result<std::forward_list<T>, E>, Tag> {
+	using From   = std::forward_list<F>;
+	using Raw    = std::forward_list<T>;
+	using To     = result<Raw, E>;
+
+	static constexpr bool impossible = !can_parse<F, T, E, Tag>;
+
+	static To convert(From const & from) {
+		static_assert(!impossible, "no conversion available for F and result<T, E>");
+		Raw result;
+		for (F const & elem : from) {
+			estd::result<T, E> converted = parse<T, E>(elem);
+			if (!converted) return converted.error_unchecked();
+			result.push_back(std::move(*converted));
+		}
+		return result;
+	}
+
+	static To convert(From && from) {
+		static_assert(!impossible, "no conversion available for F and result<T, E>");
+		Raw result;
+		for (F const & elem : from) {
+			estd::result<T, E> converted = parse<T, E>(std::move(elem));
+			if (!converted) return converted.error_unchecked();
+			result.push_back(std::move(*converted));
+		}
+		return result;
+	}
+};
 
 }
