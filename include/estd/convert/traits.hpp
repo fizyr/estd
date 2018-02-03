@@ -34,10 +34,10 @@ namespace convert_detail {
 
 /// Check if a conversion exists for the given types.
 template<typename From, typename To, typename Tag = default_conversion>
-constexpr bool can_convert = convert_detail::can_convert<From, To, Tag>::value;
+constexpr bool can_convert = convert_detail::can_convert<std::decay_t<From>, To, Tag>::value;
 
 /// Check if a conversion that might fail exists for the given types.
 template<typename From, typename To, typename Error, typename Tag = default_conversion>
-constexpr bool can_parse = can_convert<From, result<To, Error>, Tag>;
+constexpr bool can_parse = can_convert<std::decay_t<From>, result<To, Error>, Tag>;
 
 }
