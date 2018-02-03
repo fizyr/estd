@@ -17,14 +17,14 @@ struct conversion<std::vector<F>, std::vector<T>, Tag> {
 	static To perform(From const & from) {
 		static_assert(!impossible, "no conversion available for F and T");
 		To result;
-		for (T const & elem : from) result.push_back(convert<T, Tag>(elem));
+		for (F const & elem : from) result.push_back(convert<T, Tag>(elem));
 		return result;
 	}
 
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and T");
 		To result;
-		for (T && elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
+		for (F && elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
 		return result;
 	}
 };
