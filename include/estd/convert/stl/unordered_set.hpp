@@ -24,7 +24,7 @@ struct conversion<std::unordered_multiset<F>, std::unordered_multiset<T>, Tag> {
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and T");
 		To result;
-		for (F && elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
+		for (F & elem : from) result.push_back(convert<T, Tag>(std::move(elem)));
 		return result;
 	}
 };
@@ -52,7 +52,7 @@ struct conversion<std::unordered_multiset<F>, result<std::unordered_multiset<T>,
 	static To convert(From && from) {
 		static_assert(!impossible, "no conversion available for F and result<T, E>");
 		Raw result;
-		for (F const & elem : from) {
+		for (F & elem : from) {
 			estd::result<T, E> converted = parse<T, E>(std::move(elem));
 			if (!converted) return converted.error_unchecked();
 			result.push_back(std::move(*converted));

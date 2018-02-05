@@ -24,7 +24,7 @@ struct conversion<std::map<K, F>, std::map<K, T>, Tag> {
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and T");
 		To result;
-		for (std::pair<K, F> && elem : from) result.insert(std::pair<K, T>{std::move(elem.first), convert<T, Tag>(std::move(elem.second))});
+		for (std::pair<K, F> & elem : from) result.insert(std::pair<K, T>{std::move(elem.first), convert<T, Tag>(std::move(elem.second))});
 		return result;
 	}
 };
@@ -52,7 +52,7 @@ struct conversion<std::map<K, F>, result<std::map<K, T>, E>, Tag> {
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and result<T, E>");
 		To result;
-		for (std::pair<K, F> && elem : from) {
+		for (std::pair<K, F> & elem : from) {
 			estd::result<T, E> converted = parse<T, E, Tag>(std::move(elem.second));
 			if (!converted) return converted.error_unchecked();
 			result.insert(std::pair<K, T>{elem.first, std::move(*converted)});
@@ -80,7 +80,7 @@ struct conversion<std::multimap<K, F>, std::multimap<K, T>, Tag> {
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and T");
 		To result;
-		for (std::pair<K, F> && elem : from) result.insert(std::pair<K, T>{std::move(elem.first), convert<T, Tag>(std::move(elem.second))});
+		for (std::pair<K, F> & elem : from) result.insert(std::pair<K, T>{std::move(elem.first), convert<T, Tag>(std::move(elem.second))});
 		return result;
 	}
 };
@@ -108,7 +108,7 @@ struct conversion<std::multimap<K, F>, result<std::multimap<K, T>, E>, Tag> {
 	static To perform(From && from) {
 		static_assert(!impossible, "no conversion available for F and result<T, E>");
 		To result;
-		for (std::pair<K, F> && elem : from) {
+		for (std::pair<K, F> & elem : from) {
 			estd::result<T, E> converted = parse<T, E, Tag>(std::move(elem.second));
 			if (!converted) return converted.error_unchecked();
 			result.insert(std::pair<K, T>{elem.first, std::move(*converted)});
