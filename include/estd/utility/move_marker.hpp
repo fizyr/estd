@@ -32,7 +32,7 @@ public:
 	}
 
 	/// THe copy assignment operator takes over the value of the other marker.
-	move_marker & operator=(move_marker & other) {
+	move_marker & operator=(move_marker const & other) {
 		moved_from_ = other.moved_from_;
 		return *this;
 	}
