@@ -4,4 +4,5 @@ declare_compile_tests(test_${PROJECT_NAME}_utility_
 )
 declare_tests(test_${PROJECT_NAME}_utility_
 	make_ref
+	move_marker
 )
