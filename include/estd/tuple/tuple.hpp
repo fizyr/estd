@@ -9,6 +9,12 @@
 
 namespace estd {
 
+/// Get the size of a tuple.
+template<typename Tuple, typename = std::enable_if_t<is_tuple<Tuple>>>
+constexpr std::size_t size(Tuple &&) {
+	return std::tuple_size_v<std::decay_t<Tuple>>;
+}
+
 /// Make an index sequence for a tuple.
 template<typename Tuple>
 constexpr auto tuple_index_sequence() {

@@ -10,6 +10,18 @@ static_assert(std::is_same_v<decltype(tuple_index_sequence<std::tuple<>>()), std
 static_assert(std::is_same_v<decltype(tuple_index_sequence<std::tuple<int>>()), std::index_sequence<0>>);
 static_assert(std::is_same_v<decltype(tuple_index_sequence<std::tuple<int, bool, double>>()), std::index_sequence<0, 1, 2>>);
 
+TEST_CASE("tuple size", "[tuple]") {
+	SECTION("correct size is returned") {
+		REQUIRE(size(std::make_tuple(       )) == 0);
+		REQUIRE(size(std::make_tuple(1      )) == 1);
+		REQUIRE(size(std::make_tuple(1, 2   )) == 2);
+		REQUIRE(size(std::make_tuple(1, 2, 3)) == 3);
+	}
+
+	// works compile time on compile time tuples.
+	static_assert(size(std::make_tuple(1, 2, 3)) == 3, "");
+}
+
 TEST_CASE("tuple front/back", "[tuple]") {
 	SECTION("correct element is returned") {
 		REQUIRE(front(std::tuple(1, 2, 3)) == 1);
