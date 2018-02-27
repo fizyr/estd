@@ -14,7 +14,7 @@ TEST_CASE("make ref", "[utility]") {
 	static_assert_same<decltype(make_ref(a)), int &>();
 	static_assert_same<decltype(make_ref(b)), int const &>();
 	static_assert_same<decltype(make_ref(1)), int &&>();
-	static_assert_same<decltype(make_ref(static_cast<int const>(1))), int const &&>();
+	static_assert_same<decltype(make_ref(static_cast<int const &&>(1))), int const &&>();
 }
 
 TEST_CASE("make cref", "[utility]") {
