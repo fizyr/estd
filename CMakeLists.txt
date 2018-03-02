@@ -6,13 +6,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-option(BUILD_TESTS "Build tests" ON)
-
 find_package(catkin REQUIRED)
 
 catkin_package(
 	INCLUDE_DIRS include
 )
+
+if (DEFINED CATKIN_ENABLE_TESTING AND NOT CATKIN_ENABLE_TESTING)
+	option(BUILD_TESTS "Build tests" OFF)
+else()
+	option(BUILD_TESTS "Build tests" ON)
+endif()
 
 include_directories(include/${PROJECT_NAME})
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS})

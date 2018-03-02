@@ -1,9 +1,18 @@
 add_library(test_main main.cpp)
 
+if (NOT TARGET tests)
+	add_custom_target(tests)
+endif()
+
+if (NOT TARGET run_tests)
+	add_custom_target(run_tests)
+endif()
+
 function(declare_test name)
-	add_executable(${name} ${ARGN})
+	add_executable(${name} ${ARGN} EXCLUDE_FROM_ALL)
 	target_link_libraries(${name} PRIVATE test_main)
 	add_custom_target(run_${prefix}${test} COMMAND ${name})
+	add_dependencies(tests ${name})
 	add_dependencies(run_tests run_${name})
 	add_test(NAME ${name} COMMAND ${name})
 endfunction()
@@ -15,7 +24,8 @@ function(declare_tests prefix)
 endfunction()
 
 function(declare_compile_test name)
-	add_library(${name} ${ARGN})
+	add_library(${name} ${ARGN} EXCLUDE_FROM_ALL)
+	add_dependencies(tests ${name})
 	add_dependencies(run_tests ${name})
 endfunction()
 
