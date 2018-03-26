@@ -47,6 +47,7 @@ add_subdirectory(result)
 add_subdirectory(scope_guard)
 add_subdirectory(traits)
 add_subdirectory(tuple)
+add_subdirectory(type_name)
 add_subdirectory(utility)
 add_subdirectory(view)
 
