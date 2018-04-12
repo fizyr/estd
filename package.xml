@@ -3,9 +3,12 @@
 	<name>estd</name>
 	<version>0.1.1</version>
 	<description>Extended C++ library</description>
-	<license>Apache v2.0</license>
-	<author email="maarten@de-vri.es">Maarten de Vries</author>
+	<license>BSD-3-Clause</license>
+
 	<maintainer email="maarten@de-vri.es">Maarten de Vries</maintainer>
+
+	<author email="contact@fizyr.com">Fizyr B.V.</author>
+	<author email="maarten@de-vri.es">Maarten de Vries</author>
 
 	<buildtool_depend>catkin</buildtool_depend>
 </package>
