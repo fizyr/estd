@@ -1,4 +1,6 @@
 #pragma once
+#include "../traits/is_tuple.hpp"
+
 #include <cstddef>
 #include <functional>
 #include <tuple>
@@ -49,10 +51,10 @@ namespace detail {
  * If the functor returns a value it is tested in boolean context.
  * If the value compares as false, the loop is stopped.
  *
- * Returns the index of the last element that cause the loop to halt,
+ * Returns the index of the element that caused the loop to halt,
  * or the size of the tuple if no element caused the loop to stop.
  */
-template<typename F, typename Tuple>
+template<typename F, typename Tuple, typename = std::enable_if_t<estd::is_tuple<Tuple>>>
 constexpr std::size_t for_each(Tuple && tuple, F && func) {
 	return detail::tuple_for_each_impl<0>(std::forward<Tuple>(tuple), std::forward<F>(func));
 }
@@ -66,10 +68,10 @@ constexpr std::size_t for_each(Tuple && tuple, F && func) {
  * If the functor returns a value it is tested in boolean context.
  * If the value compares as false, the loop is stopped.
  *
- * Returns the index of the last element that cause the loop to halt,
+ * Returns the index of the element that caused the loop to halt,
  * or the size of the tuple if no element caused the loop to stop.
  */
-template<typename F, typename Tuple>
+template<typename F, typename Tuple, typename = std::enable_if_t<estd::is_tuple<Tuple>>>
 constexpr std::size_t for_each_i(Tuple && tuple, F && func) {
 	return detail::tuple_for_each_i_impl<0>(std::forward<Tuple>(tuple), std::forward<F>(func));
 }
