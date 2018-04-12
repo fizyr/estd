@@ -64,7 +64,7 @@ constexpr auto count_if_not(Tuple && tuple, Predicate && pred) {
 	return detail::tuple_count_not_impl(std::forward<Tuple>(tuple), std::forward<Predicate>(pred), tuple_index_sequence<Tuple>);
 }
 
-/// Perform a foldl over the values of a tuple with an initial accumulator.
+/// Perform a left fold over the values of a tuple with an initial accumulator.
 /**
  * If the tuple is empty, the initial accumulator value is returned unchanged.
  */
@@ -78,7 +78,7 @@ constexpr auto foldl(Tuple && tuple, Accumulator && accumulator, F && f) {
 	}
 }
 
-/// Perform a foldl over the values of a tuple without an initial accumulator.
+/// Perform a left fold over the values of a tuple without an initial accumulator.
 /**
  * If the tuple contains exactly one element, that element is returned unchanged.
  */
@@ -93,7 +93,7 @@ constexpr auto foldl(Tuple && tuple, F && f) {
 	}
 }
 
-/// Perform a foldl over the values of a tuple with an initial accumulator.
+/// Perform a right fold over the values of a tuple with an initial accumulator.
 /**
  * If the tuple is empty, the initial accumulator value is returned unchanged.
  */
@@ -107,7 +107,7 @@ constexpr auto foldr(Tuple && tuple, Accumulator && accumulator, F && f) {
 	}
 }
 
-/// Perform a foldl over the values of a tuple without an initial accumulator.
+/// Perform a right fold over the values of a tuple without an initial accumulator.
 /**
  * If the tuple contains exactly one element, that element is returned unchanged.
  */
