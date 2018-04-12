@@ -17,7 +17,7 @@ struct default_conversion {};
  *
  * It is also possible to mark a conversion as impossible explicitly.
  * A conversion is considered impossible when any of these conditions is true:
- *   - The specialization has a member `static constexpr bool impossible = false`.
+ *   - The specialization has a member `static constexpr bool possible = false`.
  *   - The specialization has no member named `perform`.
  *
  * The actual conversion function must be implemented as:
@@ -29,7 +29,7 @@ struct default_conversion {};
  */
 template<typename From, typename To, typename Tag = default_conversion>
 struct conversion {
-	static constexpr bool impossible = !std::is_constructible_v<To, From>;
+	static constexpr bool possible = std::is_constructible_v<To, From>;
 
 	static To perform(From const & from) {
 		static_assert(std::is_constructible_v<To, From>, "cannot convert From to To");

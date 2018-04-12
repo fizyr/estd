@@ -50,6 +50,7 @@ struct ImplicitFromFoo { ImplicitFromFoo(Foo const &); };
 struct Unrelated {};
 struct UserDefined {};
 struct ExplicitlyImpossible {};
+struct ExplicitlyPossible {};
 struct EmptyConversion {};
 
 namespace estd {
@@ -58,8 +59,13 @@ namespace estd {
 	};
 
 	template<> struct conversion<Foo, ExplicitlyImpossible> {
-		constexpr static bool impossible = true;
+		constexpr static bool possible = false;
 		static ExplicitlyImpossible perform(Foo const &);
+	};
+
+	template<> struct conversion<Foo, ExplicitlyPossible> {
+		constexpr static bool possible = true;
+		static ExplicitlyPossible perform(Foo const &);
 	};
 
 	template<> struct conversion<Foo, EmptyConversion> {};
@@ -70,4 +76,5 @@ static_assert(estd::can_convert<Foo, ImplicitFromFoo>, "");
 static_assert(estd::can_convert<Foo, UserDefined>, "");
 static_assert(estd::can_convert<Foo, Unrelated>            == false, "");
 static_assert(estd::can_convert<Foo, ExplicitlyImpossible> == false, "");
+static_assert(estd::can_convert<Foo, ExplicitlyPossible>   == true,  "");
 static_assert(estd::can_convert<Foo, EmptyConversion>      == false, "");
