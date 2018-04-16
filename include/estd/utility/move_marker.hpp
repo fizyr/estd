@@ -26,6 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
+
 namespace estd {
 
 /// Marker that you can embed in your own struct to detect if it has been moved from.

@@ -27,11 +27,11 @@
  */
 
 #pragma once
+#include "../traits/is_integer_sequence.hpp"
+
 #include <limits>
 #include <type_traits>
 #include <utility>
-
-#include "../traits/is_integer_sequence.hpp"
 
 namespace estd {
 

@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
 #include "../in_place.hpp"
 #include "../../traits/type_traits.hpp"
 #include "copyable.hpp"
