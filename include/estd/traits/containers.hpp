@@ -33,8 +33,10 @@
 
 namespace estd {
 
-template<typename T> using iterator_type       = std::decay_t<decltype(begin(std::declval<T &>()))>;
-template<typename T> using const_iterator_type = std::decay_t<decltype(begin(std::declval<T const &>()))>;
+template<typename T> using iterator_type               = std::decay_t<decltype(begin(std::declval<T &>()))>;
+template<typename T> using const_iterator_type         = std::decay_t<decltype(begin(std::declval<T const &>()))>;
+template<typename T> using reverse_iterator_type       = std::decay_t<decltype(std::declval<T &>().rbegin())>;
+template<typename T> using const_reverse_iterator_type = std::decay_t<decltype(std::declval<T const &>().rend())>;
 
 namespace detail {
 	using std::declval;
@@ -44,6 +46,12 @@ namespace detail {
 
 	template<typename T, typename = void> struct has_end : std::false_type {};
 	template<typename T> struct has_end<T, std::void_t<decltype(declval<T>().end())>> : std::true_type {};
+
+	template<typename T, typename = void> struct has_rbegin : std::false_type {};
+	template<typename T> struct has_rbegin<T, std::void_t<decltype(declval<T>().rbegin())>> : std::true_type {};
+
+	template<typename T, typename = void> struct has_rend : std::false_type {};
+	template<typename T> struct has_rend<T, std::void_t<decltype(declval<T>().rend())>> : std::true_type {};
 
 	template<typename T, typename = void> struct has_size : std::false_type {};
 	template<typename T> struct has_size<T, std::void_t<decltype(declval<T>().size())>> : std::true_type {};
@@ -57,6 +65,9 @@ namespace detail {
 
 /// Test if a type T is iterable (has a begin() and end() member)
 template<typename T> constexpr bool is_iterable = detail::has_begin<T>() && detail::has_end<T>();
+
+/// Test if a type T is reverse iterable (has a rbegin() and rend() member)
+template<typename T> constexpr bool is_reverse_iterable = detail::has_rbegin<T>() && detail::has_rend<T>();
 
 /// Test if a type T has a size() member.
 template<typename T> constexpr bool has_size = detail::has_size<T>();

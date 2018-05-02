@@ -78,4 +78,11 @@ public:
 template<typename Container, typename = std::enable_if_t<is_iterable<Container>>>
 range(Container & container) -> range<iterator_type<Container>>;
 
+// Create a reversed range for a container.
+template<typename Container>
+std::enable_if_t<is_reverse_iterable<Container>, range<reverse_iterator_type<Container>>>
+reverse(Container & container) {
+	return range{container.rbegin(), container.rend()};
+}
+
 }
