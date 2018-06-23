@@ -54,7 +54,7 @@ TEST_CASE("make cref", "[utility]") {
 	static_assert_same<decltype(make_cref(a)), int const &>();
 	static_assert_same<decltype(make_cref(b)), int const &>();
 	static_assert_same<decltype(make_cref(1)), int const &&>();
-	static_assert_same<decltype(make_cref(static_cast<int const>(1))), int const &&>();
+	static_assert_same<decltype(make_cref(static_cast<int const &&>(1))), int const &&>();
 }
 
 }

@@ -1,19 +1,17 @@
 add_library(${PROJECT_NAME}_test_main EXCLUDE_FROM_ALL main.cpp)
 
-if (NOT TARGET tests)
-	add_custom_target(tests)
-endif()
-
-if (NOT TARGET run_tests)
-	add_custom_target(run_tests)
-endif()
+define_property(GLOBAL PROPERTY CHECK_TARGET BRIEF_DOCS "." FULL_DOCS ".")
+set_property(GLOBAL PROPERTY CHECK_TARGET "check")
 
 function(declare_test name)
 	add_executable(${name} EXCLUDE_FROM_ALL ${ARGN})
 	target_link_libraries(${name} PRIVATE ${PROJECT_NAME}_test_main)
-	add_custom_target(run_${prefix}${test} COMMAND ${name})
-	add_dependencies(tests ${name})
-	add_dependencies(run_tests run_${name})
+	add_custom_target(check_${name} COMMAND ${name})
+
+	get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
+	list(APPEND check_target COMMAND cmake -E cmake_echo_color --white --bold ${name} COMMAND ${name} DEPENDS ${name})
+	set_property(GLOBAL PROPERTY CHECK_TARGET "${check_target}")
+
 	add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
@@ -26,7 +24,10 @@ endfunction()
 function(declare_compile_test name)
 	add_library(${name} EXCLUDE_FROM_ALL ${ARGN})
 	add_dependencies(tests ${name})
-	add_dependencies(run_tests ${name})
+
+	get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
+	list(APPEND check_target DEPENDS ${name})
+	set_property(GLOBAL PROPERTY CHECK_TARGET "${check_target}")
 endfunction()
 
 function(declare_compile_tests prefix)
@@ -35,9 +36,18 @@ function(declare_compile_tests prefix)
 	endforeach()
 endfunction()
 
+
 add_subdirectory(convert)
 add_subdirectory(range)
 add_subdirectory(result)
 add_subdirectory(traits)
 add_subdirectory(tuple)
 add_subdirectory(utility)
+
+
+get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
+add_custom_target(${check_target} USES_TERMINAL)
+
+if (TARGET run_tests)
+	add_dependencies(run_tests check)
+endif()
