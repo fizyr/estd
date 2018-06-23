@@ -52,8 +52,11 @@ struct error {
 
 	/// Construct an error with a code and description.
 	template<typename T, typename = std::enable_if_t<can_make_error_code<T>>>
-	error(T code, std::vector<std::string> description = {}) :
-		error{make_error_code(code), std::move(description)} {}
+	error(T code, std::vector<std::string> description = {}) : error{make_error_code(code), std::move(description)} {}
+
+	/// Construct an error with a code and description.
+	template<typename T, typename = std::enable_if_t<can_make_error_code<T>>>
+	error(T code, std::string description) : error{make_error_code(code), std::move(description)} {}
 
 	/// Check if this error represents an error and not sucess.
 	explicit operator bool() const noexcept {
