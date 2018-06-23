@@ -65,7 +65,7 @@ struct error {
 	error with_code(std::error_code code)      && { return {code, std::move(description)}; }
 
 	/// Create a new error with the same code, but with a description pushed to the stack.
-	error push_trace(std::string action) const & {
+	error push_description(std::string action) const & {
 		std::vector<std::string> new_trace = description;
 		new_trace.push_back(std::move(action));
 		return {code, new_trace};
@@ -75,7 +75,7 @@ struct error {
 	/**
 	 * This overload destroys the original error to re-use the description stack.
 	 */
-	error push_trace(std::string action) && {
+	error push_description(std::string action) && {
 		std::vector<std::string> new_trace = std::move(description);
 		new_trace.push_back(std::move(action));
 		return {code, std::move(new_trace)};
