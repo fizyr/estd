@@ -18,11 +18,23 @@ namespace detail {
 template<typename T>
 constexpr bool can_make_error_code = detail::can_make_error_code<T>::value;
 
+/// General purpose error.
+/**
+ * An error combines an std::error_code with a description stack.
+ *
+ * The description stack can be used to add more details to the raw error code, to be displayed to a human.
+ * The description stack is not meant to be inspected programmatically to determine how to process the error.
+ * In general, code not meant for logging or displaying the error should only look at the error code.
+ */
 struct error {
 	/// The error code to indicate the type of error.
 	std::error_code code;
 
 	/// A stack of descriptions to clarify the error.
+	/**
+	 * In general, descriptions are pushed to the back.
+	 * This means that information closer to the error point is at the front of the vector.
+	 */
 	std::vector<std::string> description;
 
 	/// Construct an empty error representing success.
@@ -48,35 +60,62 @@ struct error {
 		return !!code;
 	}
 
-	// Create a new error with the same description but a different error code.
+	/// Create a new error with the same description but a different error code.
 	error with_code(std::error_code code) const & { return {code, description}; }
 	error with_code(std::error_code code)      && { return {code, std::move(description)}; }
 
-	// Create a new error with the same code, but with a description pushed to the stack.
+	/// Create a new error with the same code, but with a description pushed to the stack.
 	error push_trace(std::string action) const & {
 		std::vector<std::string> new_trace = description;
 		new_trace.push_back(std::move(action));
 		return {code, new_trace};
 	}
 
+	/// Create a new error with the same code, but with a description pushed to the stack.
+	/**
+	 * This overload destroys the original error to re-use the description stack.
+	 */
 	error push_trace(std::string action) && {
 		std::vector<std::string> new_trace = std::move(description);
 		new_trace.push_back(std::move(action));
 		return {code, std::move(new_trace)};
 	}
 
+	/// Format the error code as a string.
+	/**
+	 * Returns a string in the format of:
+	 *  {category name} error {error number}: {error message}
+	 */
 	std::string format_code() const {
 		return std::string{code.category().name()} + " error " + std::to_string(code.value()) + ": " + code.message();
 	}
 
+	/// Format the error code along with the description stack.
+	/**
+	 * Returns a string in the format of:
+	 *   {description N}: {description N-1}: ... {description 1}: {error}
+	 *
+	 * Where {error} is the output of `format_code()`.
+	 */
 	std::string format() const {
-		std::size_t size = 0;
-		for (std::string const & string : description) size += string.size() + 2;
-		std::string result;
-		result.reserve(size + 64);
+		// Determine the total message size.
+		std::string code_description = format_code();
+		std::size_t size = code_description.size();
+		for (std::string const & string : description) {
+			size += string.size() + 2;
+		}
 
-		for (auto i = description.rbegin(); i != description.rend(); ++i) result += *i + ": ";
-		result += format_code();
+		// Make a string with the right capacity.
+		std::string result;
+		result.reserve(size);
+
+		// Add all descriptions, back to front.
+		for (auto i = description.rbegin(); i != description.rend(); ++i) {
+			result += *i + ": ";
+		}
+
+		// Add the description of the error code.
+		result += code_description;
 		return result;
 	}
 };
