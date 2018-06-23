@@ -27,4 +27,5 @@
  */
 
 #pragma once
+#include "result/error.hpp"
 #include "result/result.hpp"
