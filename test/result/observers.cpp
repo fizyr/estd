@@ -63,7 +63,7 @@ TEST_CASE("valid result observers", "[result]") {
 	}
 
 	SECTION("error observers") {
-		REQUIRE_THROWS_AS(valid.error(), std::logic_error);
+		REQUIRE_THROWS_AS(valid.error(), std::logic_error &);
 		REQUIRE_NOTHROW(valid.error_unchecked());
 		REQUIRE(valid.error_or(Error{7}) == Error{7});
 		REQUIRE(valid.error_or() == Error{0});
@@ -88,7 +88,7 @@ TEST_CASE("invalid result observers", "[result]") {
 	}
 
 	SECTION("value observers") {
-		REQUIRE_THROWS_AS(valid.value(), Error);
+		REQUIRE_THROWS_AS(valid.value(), Error &);
 		REQUIRE_NOTHROW(*valid);
 		REQUIRE_THROWS_AS(valid.value(make_exception), int);
 		REQUIRE(valid.value_or(4) == 4);
@@ -119,7 +119,7 @@ TEST_CASE("valid result<void> observers", "[result]") {
 	}
 
 	SECTION("error observers") {
-		REQUIRE_THROWS_AS(valid.error(), std::logic_error);
+		REQUIRE_THROWS_AS(valid.error(), std::logic_error &);
 		REQUIRE(valid.error_or(Error{7}) == Error{7});
 		REQUIRE(valid.error_or() == Error{0});
 	}
@@ -134,8 +134,8 @@ TEST_CASE("invalid result<void> observers", "[result]") {
 	}
 
 	SECTION("value observers") {
-		REQUIRE_THROWS_AS(valid.value(),               Error);
-		REQUIRE_THROWS_AS(*valid,                      Error);
+		REQUIRE_THROWS_AS(valid.value(),               Error &);
+		REQUIRE_THROWS_AS(*valid,                      Error &);
 		REQUIRE_THROWS_AS(valid.value(make_exception), int);
 	}
 
