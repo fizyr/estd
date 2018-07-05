@@ -57,8 +57,8 @@ public:
 	static_assert(!std::is_rvalue_reference_v<E>, "rvalue references are not supported in result<T, E>");
 
 protected:
-	using decayed_T = std::decay_t<T>;
-	using decayed_E = std::decay_t<E>;
+	using DecayedT = std::decay_t<T>;
+	using DecayedE = std::decay_t<E>;
 	using result_storage = detail::result_storage<T, E>;
 
 	/// Result storage.
@@ -86,14 +86,14 @@ public:
 	result(in_place_error_t, Args && ... args) : data_{in_place_error, std::forward<Args>(args)...} {}
 
 	/// Allow implicit conversion from T and E only if T and E are not implicitly convertible to eachother.
-	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T        &>>> result(decayed_T        & value) : data_{in_place_valid, value} {}
-	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T const  &>>> result(decayed_T const  & value) : data_{in_place_valid, value} {}
-	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T       &&>>> result(decayed_T       && value) : data_{in_place_valid, std::move(value)} {}
-	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<decayed_T const &&>>> result(decayed_T const && value) : data_{in_place_valid, std::move(value)} {}
-	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E        &>>> result(decayed_E        & error) : data_{in_place_error, error} {}
-	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E const  &>>> result(decayed_E const  & error) : data_{in_place_error, error} {}
-	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E       &&>>> result(decayed_E       && error) : data_{in_place_error, std::move(error)} {}
-	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<decayed_E const &&>>> result(decayed_E const && error) : data_{in_place_error, std::move(error)} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<DecayedT        &>>> result(DecayedT        & value) : data_{in_place_valid, value} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<DecayedT const  &>>> result(DecayedT const  & value) : data_{in_place_valid, value} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<DecayedT       &&>>> result(DecayedT       && value) : data_{in_place_valid, std::move(value)} {}
+	template<char B = 1, typename = std::enable_if_t<B && allow_implicit_valid_conversion_<DecayedT const &&>>> result(DecayedT const && value) : data_{in_place_valid, std::move(value)} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<DecayedE        &>>> result(DecayedE        & error) : data_{in_place_error, error} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<DecayedE const  &>>> result(DecayedE const  & error) : data_{in_place_error, error} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<DecayedE       &&>>> result(DecayedE       && error) : data_{in_place_error, std::move(error)} {}
+	template<bool B = 1, typename = std::enable_if_t<B && allow_implicit_error_conversion_<DecayedE const &&>>> result(DecayedE const && error) : data_{in_place_error, std::move(error)} {}
 
 	/// Allow explicit conversion from result<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
@@ -137,11 +137,10 @@ public:
 	template<typename F> add_rref<T>  value(F && make_exception)      && { std::move(value(std::forward<F>(make_exception))); }
 
 	/// Get the contained value or a fallback if the result is not valid.
-	add_lref<T>  value_or(add_lref<T>  fallback)       & noexcept { if (!*this) return fallback; return data_.as_valid(); }
-	add_clref<T> value_or(add_clref<T> fallback) const & noexcept { if (!*this) return fallback; return data_.as_valid(); }
-	add_rref<T>  value_or(add_rref<T>  fallback)      && noexcept { std::move(value_or(fallback)); }
-	template<int B = 1, typename = std::enable_if_t<B && !std::is_reference_v<E>>>
-	add_lref<T>  value_or(add_lref<T>  fallback)      && noexcept { std::move(value_or(fallback)); }
+	DecayedT value_or(DecayedT fallback) const {
+		if (!*this) return std::move(fallback);
+		return data_.as_valid();
+	}
 
 	/// Get the held error without checking if it is valid.
 	add_lref<E>   error_unchecked()       & { return data_.as_error(); }
@@ -157,14 +156,16 @@ public:
 	add_rref <E> error()      && { ensure_error(); return std::move(data_.as_error()); }
 
 	/// Get the held error, or a fallback value if the result is valid.
-	add_lref<E>  error_or(add_lref<E>   fallback)       & noexcept { if (*this) return fallback; return data_.as_error(); }
-	add_clref<E> error_or(add_clref<E>  fallback) const & noexcept { if (*this) return fallback; return data_.as_error(); }
-	add_rref<E>  error_or(add_rref<E>   fallback)      && noexcept { std::move(error_or(fallback)); }
-	template<int B = 1, typename = std::enable_if_t<B && !std::is_reference_v<E>>>
-	add_lref<E>  error_or(add_lref<E>   fallback)      && noexcept { std::move(error_or(fallback)); }
+	DecayedE error_or(DecayedE fallback) const {
+		if (*this) return std::move(fallback);
+		return data_.as_error();
+	}
 
-	/// Get the held error, or a static default constructed error if the result is valid.
-	add_clref<E> error_or() const noexcept(noexcept(E{})) { static E default_error; return error_or(default_error); }
+	/// Get the held error, or a default constructed error if the result is valid.
+	std::remove_reference_t<E> error_or() const noexcept(noexcept(E{})) {
+		if (*this) return std::remove_reference_t<E>{};
+		return data_.as_error();
+	}
 
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.
@@ -191,6 +192,8 @@ public:
 	using Error = E;
 
 protected:
+	using DecayedE = std::decay_t<E>;
+
 	/// The error storage.
 	std::optional<detail::result_type_storage<E>> error_;
 
@@ -233,13 +236,14 @@ public:
 	add_clref<E> error() const & { ensure_error(); return *error_; }
 	add_rref <E> error()      && { std::move(error()); }
 
-	/// Get the held error, a fallback value if the result doesn't hold an error.
-	add_lref <E> error_or(add_lref <E> fallback)       & { if (*this) return fallback; return *error_; }
-	add_clref<E> error_or(add_clref<E> fallback) const & { if (*this) return fallback; return *error_; }
-	add_rref <E> error_or(add_rref <E> fallback)      && { std::move(error_or(fallback)); }
+	/// Get the held error, or a fallback value if the result doesn't hold an error.
+	DecayedE error_or(DecayedE fallback) const & { if (*this) return std::move(fallback); return *error_; }
 
-	/// Get the held error, or a static default constructed error.
-	add_clref<E> error_or() const noexcept(noexcept(E{})) { static E default_error; return error_or(default_error); }
+	/// Get the held error, or a default constructed error if the result is valid.
+	std::remove_reference_t<E> error_or() const noexcept(noexcept(E{})) {
+		if (*this) return std::remove_reference_t<E>{};
+		return *error_;
+	}
 
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.

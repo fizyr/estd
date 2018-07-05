@@ -54,12 +54,12 @@ void test_valid_observers() {
 	static_assert_same<decltype(std::declval<R const &>().value()),  const_T>();
 	static_assert_same<decltype(std::declval<R      &&>().value()), rvalue_T>();
 
-	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval<       T>())),        T>();
-	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval< const_T>())),  const_T>();
-	static_assert_same<decltype(std::declval<R const &>().value_or(std::declval< const_T>())),  const_T>();
-	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<rvalue_T>())), rvalue_T>();
-	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<       T>())),        T>();
-	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval< const_T>())),  const_T>();
+	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval<       T>())), std::decay_t<T>>();
+	static_assert_same<decltype(std::declval<R       &>().value_or(std::declval< const_T>())), std::decay_t<T>>();
+	static_assert_same<decltype(std::declval<R const &>().value_or(std::declval< const_T>())), std::decay_t<T>>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<rvalue_T>())), std::decay_t<T>>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval<       T>())), std::decay_t<T>>();
+	static_assert_same<decltype(std::declval<R      &&>().value_or(std::declval< const_T>())), std::decay_t<T>>();
 }
 
 template<typename R, typename E, typename const_E, typename rvalue_E>
@@ -72,12 +72,12 @@ void test_error_observers() {
 	static_assert_same<decltype(std::declval<R const &>().error()),  const_E>();
 	static_assert_same<decltype(std::declval<R      &&>().error()), rvalue_E>();
 
-	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<       E>())),        E>();
-	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval< const_E>())),  const_E>();
-	static_assert_same<decltype(std::declval<R const &>().error_or(std::declval< const_E>())),  const_E>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<rvalue_E>())), rvalue_E>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<       E>())),        E>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval< const_E>())),  const_E>();
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<       E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval< const_E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R const &>().error_or(std::declval< const_E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<rvalue_E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<       E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval< const_E>())), std::decay_t<E>>();
 }
 
 void test() {
