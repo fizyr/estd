@@ -61,6 +61,8 @@ protected:
 	using DecayedE = std::decay_t<E>;
 	using result_storage = detail::result_storage<T, E>;
 
+	using NonAbstractDecayedT = std::conditional_t<std::is_abstract_v<DecayedT>, int, DecayedT>;
+
 	/// Result storage.
 	result_storage data_;
 
@@ -137,7 +139,8 @@ public:
 	template<typename F> add_rref<T>  value(F && make_exception)      && { std::move(value(std::forward<F>(make_exception))); }
 
 	/// Get the contained value or a fallback if the result is not valid.
-	DecayedT value_or(DecayedT fallback) const {
+	template<bool B = 1, typename = std::enable_if_t<B && !std::is_abstract_v<DecayedT>>>
+	NonAbstractDecayedT value_or(NonAbstractDecayedT fallback) const {
 		if (!*this) return std::move(fallback);
 		return data_.as_valid();
 	}
