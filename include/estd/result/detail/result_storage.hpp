@@ -176,18 +176,6 @@ public:
 		else           error_.~Error();
 	}
 
-	template<typename T2, typename E2>
-	bool operator==(result_storage_base<T2, E2> const & other) const {
-		if (valid() != other.valid()) return false;
-		if (!valid()) return as_error() == other.as_error();
-		return as_valid() == other.as_valid();
-	}
-
-	template<typename T2, typename E2>
-	bool operator!=(result_storage_base<T2, E2> const & other) const {
-		return !(*this == other);
-	}
-
 	bool valid() const { return is_valid_; }
 
 	add_lref <T> as_valid()        & { return valid_; }

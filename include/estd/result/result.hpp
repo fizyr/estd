@@ -29,6 +29,7 @@
 #pragma once
 #include "in_place.hpp"
 #include "detail/result_storage.hpp"
+#include "../traits/is_comparible.hpp"
 
 #include <stdexcept>
 #include <type_traits>
@@ -117,10 +118,6 @@ public:
 
 	std::remove_reference_t<T> const * operator-> () const { return &data_.as_valid(); }
 	std::remove_reference_t<T>       * operator-> ()       { return &data_.as_valid(); }
-
-	/// Compare with another result.
-	template<typename T2, typename E2> bool operator==(result<T2, E2> const & other) const { return data_ == other.data_; }
-	template<typename T2, typename E2> bool operator!=(result<T2, E2> const & other) const { return data_ != other.data_; }
 
 	/// Get the contained value.
 	/**
@@ -266,39 +263,48 @@ private:
 	}
 };
 
-/// Allow direct comparison with T if T and E aren't the same types.
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator==(result<T, E> const & result, T const & raw) {
-	return !!result && *result == raw;
-}
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator==(T const & raw, result<T, E> const & result) {
-	return result == raw;
-}
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator!=(result<T, E> const & result, T const & raw) {
-	return !(result == raw);
-}
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator!=(T const & raw, result<T, E> const & result) {
-	return !(result == raw);
+/// Compare two results with comparible different types.
+template<typename T1, typename E1, typename T2, typename E2, typename = std::enable_if_t<is_comparible<T1, T2> && is_comparible<E1, E2>>>
+bool operator==(result<T1, E1> const & a, result<T2, E2> const & b) {
+	if (a.valid() && b.valid()) {
+		return *a == *b;
+	} else if (!a.valid() && !b.valid()) {
+		return a.error_unchecked() == b.error_unchecked();
+	} else {
+		return false;
+	}
 }
 
-/// Allow direct comparison with E if T and E aren't the same types.
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator==(result<T, E> const & result, E const & raw) {
-	return !result && result.error_unchecked() == raw;
+template<typename T1, typename E1, typename T2, typename E2, typename = std::enable_if_t<is_comparible<T1, T2> && is_comparible<E1, E2>>>
+bool operator!=(result<T1, E1> const & a, result<T2, E2> const & b) {
+	return !(a == b);
 }
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator==(E const & raw, result<T, E> const & result) {
-	return result == raw;
+
+/// Allow comparing with Raw if Raw is comparible with either T or E, but not both.
+template<typename T, typename E, typename Raw, typename = std::enable_if_t<is_comparible<T, Raw> != is_comparible<E, Raw>>>
+bool operator==(result<T, E> const & a, Raw const & b) {
+	static_assert(is_comparible<T, Raw> || is_comparible<E, Raw>, "Raw is not comparible to either T or E");
+	if constexpr(is_comparible<T, Raw> && !is_comparible<E, Raw> && !is_comparible<Raw, E>) {
+		return a.valid() && *a == b;
+	} else if constexpr (is_comparible<E, Raw> && !is_comparible<T, Raw> && !is_comparible<Raw, T>) {
+		return !a.valid() && a.error_unchecked() == b;
+	} else {
+		static_assert(always_false<T, E, Raw>, "comparison between Raw and T or E would be ambiguous");
+	}
 }
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator!=(result<T, E> const & result, E const & raw) {
-	return !(result == raw);
+
+template<typename T, typename E, typename Raw, typename = std::enable_if_t<is_comparible<T, Raw> != is_comparible<E, Raw>>>
+bool operator==(Raw const & a, result<T, E> const & b) {
+	return b == a;
 }
-template<typename T, typename E, typename = std::enable_if_t<!std::is_same<T, E>{}>>
-bool operator!=(E const & raw, result<T, E> const & result) {
-	return !(result == raw);
+
+/// Allow comparing with T2 if T2 is comparible with T but not with E.
+template<typename T, typename E, typename Raw, typename = std::enable_if_t<is_comparible<T, Raw> != is_comparible<E, Raw>>>
+bool operator!=(result<T, E> const & a, Raw const & b) { return !(a == b); }
+
+template<typename T, typename E, typename Raw, typename = std::enable_if_t<is_comparible<T, Raw> != is_comparible<E, Raw>>>
+bool operator!=(Raw const & a, result<T, E> const & b) {
+	return !(b == a);
 }
+
 }
