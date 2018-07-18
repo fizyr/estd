@@ -69,6 +69,16 @@ struct conversion {
 	}
 };
 
+/// Specializable struct to define the default error type for parsing a T from an F.
+template<typename F, typename T, typename Tag = default_conversion>
+struct define_default_parse_error {
+	using type = error;
+};
+
+/// Get the default error type for parsing a T from an F.
+template<typename F, typename T, typename Tag = default_conversion>
+using default_parse_error = typename define_default_parse_error<F, T, Tag>::type;
+
 /// Convert a value to type T.
 template<typename T, typename Tag = default_conversion, typename F>
 T convert(F && from) {
@@ -82,6 +92,15 @@ T convert(F && from) {
 template<typename T, typename E, typename Tag = default_conversion, typename F>
 result<T, E> parse(F && from) {
 	return convert<result<T, E>, Tag>(std::forward<F>(from));
+}
+
+/// Convert a value to a result<T>.
+/**
+ * Shorthand for estd::convert<estd::result<T, E>, Tag>(from)
+ */
+template<typename T, typename F>
+result<T, default_parse_error<F, T>> parse(F && from) {
+	return convert<result<T, default_parse_error<F, T>>, default_conversion>(std::forward<F>(from));
 }
 
 }

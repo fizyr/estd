@@ -5,5 +5,6 @@ declare_compile_tests(test_${PROJECT_NAME}_convert_
 declare_tests(test_${PROJECT_NAME}_convert_
 	convert
 	numerical
+	parse
 	stl
 )
