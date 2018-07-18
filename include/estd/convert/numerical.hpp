@@ -41,26 +41,25 @@ namespace estd {
 
 namespace impl {
 	template<typename T>
-	result<T, std::error_code> string_to_numerical(std::string_view input) {
+	result<T, error> string_to_numerical(std::string_view input) {
 		T value;
 		auto [ptr, error] = std::from_chars(&input[0], &input[input.size()], value);
-		if (error != std::errc{}) return {estd::in_place_error, make_error_code(error)};
-		if (ptr != &input[input.size()]) return {estd::in_place_error, make_error_code(std::errc::invalid_argument)};
+		if (error != std::errc{})        return estd::error{error};
+		if (ptr != &input[input.size()]) return estd::error{std::errc::invalid_argument};
 		return {estd::in_place_valid, value};
 	}
 
 	template<typename T>
-	result<std::string, std::error_code> numerical_to_string(T input) {
+	result<std::string, error> numerical_to_string(T input) {
 		// Start with 16 bytes, grow as needed.
 		std::string result;
 		result.resize(16);
 		while (true) {
 			auto [ptr, error] = std::to_chars(&result[0], &result[result.size()], input);
-			if (error == std::errc::value_too_large) {
-				if (result.size() >= 1024) return {in_place_error, make_error_code(std::errc::value_too_large)};
+			if (error == std::errc::value_too_large && result.size() < 1024) {
 				result.resize(result.size() * 2);
 			} else if (error != std::errc{}) {
-				return {estd::in_place_error, make_error_code(error)};
+				return estd::error{error};
 			} else {
 				// Resize down to the used space.
 				result.resize(ptr - &result[0]);
@@ -73,25 +72,28 @@ namespace impl {
 }
 
 #define ESTD_DEFINE_NUMERICAL_CONVERSIONS(T) \
-template<> struct estd::conversion<std::string_view, estd::result<T, std::error_code>, estd::default_conversion> { \
-	static estd::result<T, std::error_code> perform(std::string_view from) {\
+template<> struct estd::conversion<std::string_view, estd::result<T, estd::error>, estd::default_conversion> { \
+	static estd::result<T, estd::error> perform(std::string_view from) {\
 		return estd::impl::string_to_numerical<T>(from); \
 	} \
 };\
-template<> struct estd::conversion<char const *, estd::result<T, std::error_code>, estd::default_conversion> { \
-	static estd::result<T, std::error_code> perform(char const * from) {\
+template<> struct estd::conversion<char const *, estd::result<T, estd::error>, estd::default_conversion> { \
+	static estd::result<T, estd::error> perform(char const * from) {\
 		return estd::impl::string_to_numerical<T>(from); \
 	} \
 };\
-template<> struct estd::conversion<std::string, estd::result<T, std::error_code>, estd::default_conversion> { \
-	static estd::result<T, std::error_code> perform(std::string const & from) {\
+template<> struct estd::conversion<std::string, estd::result<T, estd::error>, estd::default_conversion> { \
+	static estd::result<T, estd::error> perform(std::string const & from) {\
 		return estd::impl::string_to_numerical<T>(from); \
 	} \
 };\
+template<> struct estd::define_default_parse_error<std::string_view, T, estd::default_conversion> { using type = estd::error; }; \
+template<> struct estd::define_default_parse_error<std::string,      T, estd::default_conversion> { using type = estd::error; }; \
+template<> struct estd::define_default_parse_error<char const *,     T, estd::default_conversion> { using type = estd::error; }; \
 template<> struct estd::conversion<T, std::string, estd::default_conversion> { \
 	static std::string perform(T from) {\
 		auto result = impl::numerical_to_string<T>(from); \
-		if (!result) throw std::system_error(result.error(), "unexpected error during numerical-to-string conversion"); \
+		if (!result) throw std::system_error(result.error_unchecked().code, "unexpected error during numerical-to-string conversion"); \
 		return std::move(*result); \
 	} \
 }

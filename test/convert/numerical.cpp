@@ -46,25 +46,32 @@ struct Catch::StringMaker<std::error_code> {
 	}
 };
 
+template<>
+struct Catch::StringMaker<estd::error> {
+	static std::string convert(estd::error const & error) {
+		return error.format();
+	}
+};
+
 namespace estd {
 
 TEST_CASE("string/numerical conversions work for char", "[convert]") {
-	REQUIRE((parse<char, std::error_code>(   "0")) == (char)    0);
-	REQUIRE((parse<char, std::error_code>(   "1")) == (char)    1);
-	REQUIRE((parse<char, std::error_code>(  "-1")) == (char)   -1);
-	REQUIRE((parse<char, std::error_code>( "127")) == (char)  127);
-	REQUIRE((parse<char, std::error_code>("-127")) == (char) -127);
+	REQUIRE(parse<char>(   "0") == (char)    0);
+	REQUIRE(parse<char>(   "1") == (char)    1);
+	REQUIRE(parse<char>(  "-1") == (char)   -1);
+	REQUIRE(parse<char>( "127") == (char)  127);
+	REQUIRE(parse<char>("-127") == (char) -127);
 
-	REQUIRE((parse<signed char, std::error_code>(   "0")) == (signed char)    0);
-	REQUIRE((parse<signed char, std::error_code>(   "1")) == (signed char)    1);
-	REQUIRE((parse<signed char, std::error_code>(  "-1")) == (signed char)   -1);
-	REQUIRE((parse<signed char, std::error_code>( "127")) == (signed char)  127);
-	REQUIRE((parse<signed char, std::error_code>("-127")) == (signed char) -127);
+	REQUIRE(parse<signed char>(   "0") == (signed char)    0);
+	REQUIRE(parse<signed char>(   "1") == (signed char)    1);
+	REQUIRE(parse<signed char>(  "-1") == (signed char)   -1);
+	REQUIRE(parse<signed char>( "127") == (signed char)  127);
+	REQUIRE(parse<signed char>("-127") == (signed char) -127);
 
-	REQUIRE((parse<unsigned char, std::error_code>(  "0")) == (unsigned char)   0);
-	REQUIRE((parse<unsigned char, std::error_code>(  "1")) == (unsigned char)   1);
-	REQUIRE((parse<unsigned char, std::error_code>("127")) == (unsigned char) 127);
-	REQUIRE((parse<unsigned char, std::error_code>("255")) == (unsigned char) 255);
+	REQUIRE(parse<unsigned char>(  "0") == (unsigned char)   0);
+	REQUIRE(parse<unsigned char>(  "1") == (unsigned char)   1);
+	REQUIRE(parse<unsigned char>("127") == (unsigned char) 127);
+	REQUIRE(parse<unsigned char>("255") == (unsigned char) 255);
 
 	REQUIRE(convert<std::string>((char)  0) ==  "0");
 	REQUIRE(convert<std::string>((char)  1) ==  "1");
@@ -78,16 +85,16 @@ TEST_CASE("string/numerical conversions work for char", "[convert]") {
 }
 
 TEST_CASE("string/numerical conversions work for short", "[convert]") {
-	REQUIRE((parse<short, std::error_code>(     "0")) == (short)      0);
-	REQUIRE((parse<short, std::error_code>(     "1")) == (short)      1);
-	REQUIRE((parse<short, std::error_code>(    "-1")) == (short)     -1);
-	REQUIRE((parse<short, std::error_code>( "32767")) == (short)  32767);
-	REQUIRE((parse<short, std::error_code>("-32767")) == (short) -32767);
+	REQUIRE(parse<short>(     "0") == (short)      0);
+	REQUIRE(parse<short>(     "1") == (short)      1);
+	REQUIRE(parse<short>(    "-1") == (short)     -1);
+	REQUIRE(parse<short>( "32767") == (short)  32767);
+	REQUIRE(parse<short>("-32767") == (short) -32767);
 
-	REQUIRE((parse<unsigned short, std::error_code>(    "0")) == (unsigned short)     0);
-	REQUIRE((parse<unsigned short, std::error_code>(    "1")) == (unsigned short)     1);
-	REQUIRE((parse<unsigned short, std::error_code>("32767")) == (unsigned short) 32767);
-	REQUIRE((parse<unsigned short, std::error_code>("65535")) == (unsigned short) 65535);
+	REQUIRE(parse<unsigned short>(    "0") == (unsigned short)     0);
+	REQUIRE(parse<unsigned short>(    "1") == (unsigned short)     1);
+	REQUIRE(parse<unsigned short>("32767") == (unsigned short) 32767);
+	REQUIRE(parse<unsigned short>("65535") == (unsigned short) 65535);
 
 	REQUIRE(convert<std::string>((short) -1) == "-1");
 	REQUIRE(convert<std::string>((short)  0) ==  "0");
@@ -99,16 +106,16 @@ TEST_CASE("string/numerical conversions work for short", "[convert]") {
 }
 
 TEST_CASE("string/numerical conversions work for int", "[convert]") {
-	REQUIRE((parse<int, std::error_code>(          "0")) == (int)           0);
-	REQUIRE((parse<int, std::error_code>(          "1")) == (int)           1);
-	REQUIRE((parse<int, std::error_code>(         "-1")) == (int)          -1);
-	REQUIRE((parse<int, std::error_code>( "2147483647")) == (int)  2147483647);
-	REQUIRE((parse<int, std::error_code>("-2147483647")) == (int) -2147483647);
+	REQUIRE(parse<int>(          "0") == (int)           0);
+	REQUIRE(parse<int>(          "1") == (int)           1);
+	REQUIRE(parse<int>(         "-1") == (int)          -1);
+	REQUIRE(parse<int>( "2147483647") == (int)  2147483647);
+	REQUIRE(parse<int>("-2147483647") == (int) -2147483647);
 
-	REQUIRE((parse<unsigned int, std::error_code>(         "0")) == (unsigned int)          0);
-	REQUIRE((parse<unsigned int, std::error_code>(         "1")) == (unsigned int)          1);
-	REQUIRE((parse<unsigned int, std::error_code>("2147483647")) == (unsigned int) 2147483647);
-	REQUIRE((parse<unsigned int, std::error_code>("4294967295")) == (unsigned int) 4294967295);
+	REQUIRE(parse<unsigned int>(         "0") == (unsigned int)          0);
+	REQUIRE(parse<unsigned int>(         "1") == (unsigned int)          1);
+	REQUIRE(parse<unsigned int>("2147483647") == (unsigned int) 2147483647);
+	REQUIRE(parse<unsigned int>("4294967295") == (unsigned int) 4294967295);
 
 	REQUIRE(convert<std::string>((int) -1) == "-1");
 	REQUIRE(convert<std::string>((int)  0) ==  "0");
@@ -119,16 +126,16 @@ TEST_CASE("string/numerical conversions work for int", "[convert]") {
 }
 
 TEST_CASE("string/numerical conversions work for long", "[convert]") {
-	REQUIRE((parse<long, std::error_code>(          "0")) == (long)           0);
-	REQUIRE((parse<long, std::error_code>(          "1")) == (long)           1);
-	REQUIRE((parse<long, std::error_code>(         "-1")) == (long)          -1);
-	REQUIRE((parse<long, std::error_code>( "2147483647")) == (long)  2147483647);
-	REQUIRE((parse<long, std::error_code>("-2147483647")) == (long) -2147483647);
+	REQUIRE(parse<long>(          "0") == (long)           0);
+	REQUIRE(parse<long>(          "1") == (long)           1);
+	REQUIRE(parse<long>(         "-1") == (long)          -1);
+	REQUIRE(parse<long>( "2147483647") == (long)  2147483647);
+	REQUIRE(parse<long>("-2147483647") == (long) -2147483647);
 
-	REQUIRE((parse<unsigned long, std::error_code>(         "0")) == (unsigned long)          0);
-	REQUIRE((parse<unsigned long, std::error_code>(         "1")) == (unsigned long)          1);
-	REQUIRE((parse<unsigned long, std::error_code>("2147483647")) == (unsigned long) 2147483647);
-	REQUIRE((parse<unsigned long, std::error_code>("4294967295")) == (unsigned long) 4294967295);
+	REQUIRE(parse<unsigned long>(         "0") == (unsigned long)          0);
+	REQUIRE(parse<unsigned long>(         "1") == (unsigned long)          1);
+	REQUIRE(parse<unsigned long>("2147483647") == (unsigned long) 2147483647);
+	REQUIRE(parse<unsigned long>("4294967295") == (unsigned long) 4294967295);
 
 	REQUIRE(convert<std::string>((long) -1) == "-1");
 	REQUIRE(convert<std::string>((long)  0) ==  "0");
@@ -139,16 +146,16 @@ TEST_CASE("string/numerical conversions work for long", "[convert]") {
 }
 
 TEST_CASE("string/numerical conversions work for long long", "[convert]") {
-	REQUIRE((parse<long, std::error_code>(                   "0")) == (long)                    0);
-	REQUIRE((parse<long, std::error_code>(                   "1")) == (long)                    1);
-	REQUIRE((parse<long, std::error_code>(                  "-1")) == (long)                   -1);
-	REQUIRE((parse<long, std::error_code>( "9223372036854775807")) == (long)  9223372036854775807);
-	REQUIRE((parse<long, std::error_code>("-9223372036854775807")) == (long) -9223372036854775807);
+	REQUIRE(parse<long>(                   "0") == (long)                    0);
+	REQUIRE(parse<long>(                   "1") == (long)                    1);
+	REQUIRE(parse<long>(                  "-1") == (long)                   -1);
+	REQUIRE(parse<long>( "9223372036854775807") == (long)  9223372036854775807);
+	REQUIRE(parse<long>("-9223372036854775807") == (long) -9223372036854775807);
 
-	REQUIRE((parse<unsigned long long, std::error_code>("0"))                     == (unsigned long long)                    0u);
-	REQUIRE((parse<unsigned long long, std::error_code>("1"))                     == (unsigned long long)                    1u);
-	REQUIRE((parse<unsigned long long, std::error_code>("9223372036854775807"))   == (unsigned long long)  9223372036854775807u);
-	REQUIRE((parse<unsigned long long, std::error_code>("18446744073709551615"))  == (unsigned long long) 18446744073709551615u);
+	REQUIRE(parse<unsigned long long>("0")                     == (unsigned long long)                    0u);
+	REQUIRE(parse<unsigned long long>("1")                     == (unsigned long long)                    1u);
+	REQUIRE(parse<unsigned long long>("9223372036854775807")   == (unsigned long long)  9223372036854775807u);
+	REQUIRE(parse<unsigned long long>("18446744073709551615")  == (unsigned long long) 18446744073709551615u);
 
 	REQUIRE(convert<std::string>((long long) -1) == "-1");
 	REQUIRE(convert<std::string>((long long)  0) ==  "0");
@@ -159,10 +166,10 @@ TEST_CASE("string/numerical conversions work for long long", "[convert]") {
 }
 
 TEST_CASE("invalid patterns give an error") {
-	REQUIRE((parse<int, std::error_code>("aap")) == make_error_code(std::errc::invalid_argument));
-	REQUIRE((parse<int, std::error_code>("123aap")) == make_error_code(std::errc::invalid_argument));
-	REQUIRE((parse<unsigned, std::error_code>("-1")) == make_error_code(std::errc::invalid_argument));
-	REQUIRE((parse<short, std::error_code>("1000000000")) == make_error_code(std::errc::result_out_of_range));
+	REQUIRE(parse<int>("aap") == std::errc::invalid_argument);
+	REQUIRE(parse<int>("123aap") == std::errc::invalid_argument);
+	REQUIRE(parse<unsigned>("-1") == std::errc::invalid_argument);
+	REQUIRE(parse<short>("1000000000") == std::errc::result_out_of_range);
 }
 
 
