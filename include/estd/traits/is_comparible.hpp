@@ -27,10 +27,28 @@
  */
 
 #pragma once
-#include "traits/containers.hpp"
-#include "traits/is_comparible.hpp"
-#include "traits/is_integer_sequence.hpp"
-#include "traits/is_tuple.hpp"
-#include "traits/iterator.hpp"
-#include "traits/replace_type.hpp"
-#include "traits/type_traits.hpp"
+#include <type_traits>
+
+namespace estd {
+
+namespace detail {
+	template<typename A, typename B, typename = void>
+	struct is_comparible : std::false_type {};
+
+	template<typename A, typename B>
+	struct is_comparible<A, B, std::void_t<decltype(std::declval<A const &>() == std::declval<B const &>())>> : std::true_type{};
+}
+
+/// Test if the expression a == b is valid.
+/**
+ * Where a and b are const values.
+ */
+template<typename A, typename B> constexpr bool is_comparible = detail::is_comparible<A, B>::value;
+
+/// Test if the expression a == b is valid and b == a is valid.
+/**
+ * Where a and b are const values.
+ */
+template<typename A, typename B> constexpr bool is_comparible2 = is_comparible<A, B> && is_comparible<B, A>;
+
+}

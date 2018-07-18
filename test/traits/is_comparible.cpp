@@ -26,11 +26,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-#include "traits/containers.hpp"
 #include "traits/is_comparible.hpp"
-#include "traits/is_integer_sequence.hpp"
-#include "traits/is_tuple.hpp"
-#include "traits/iterator.hpp"
-#include "traits/replace_type.hpp"
-#include "traits/type_traits.hpp"
+
+#include "../static_assert_same.hpp"
+
+namespace estd {
+
+struct A{};
+struct B{};
+struct C{};
+
+bool operator== (A const &, B const &);
+bool operator== (B const &, A const &);
+
+bool operator== (B const &, C const &);
+bool operator== (C const &, B const &);
+
+static_assert(is_comparible<int, int>);
+static_assert(is_comparible<int, char>);
+static_assert(is_comparible<int, int *> == false);
+static_assert(is_comparible<int, char *> == false);
+
+static_assert(is_comparible<A, B>);
+static_assert(is_comparible2<A, B>);
+static_assert(is_comparible<B, C>);
+static_assert(is_comparible2<B, C>);
+static_assert(is_comparible<A, C> == false);
+static_assert(is_comparible2<A, C> == false);
+
+struct HalfA{};
+struct HalfB{};
+
+bool operator==(HalfA const &, HalfB);
+static_assert(is_comparible<HalfA, HalfB>);
+static_assert(is_comparible<HalfB, HalfA> == false);
+static_assert(is_comparible2<HalfA, HalfB> == false);
+static_assert(is_comparible2<HalfB, HalfA> == false);
+
+}
