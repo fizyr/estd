@@ -27,10 +27,11 @@
  */
 
 #pragma once
+#include "./conversion.hpp"
+#include "../result/result.hpp"
+
 #include <utility>
 #include <type_traits>
-
-#include "./convert.hpp"
 
 namespace estd {
 
@@ -43,21 +44,17 @@ namespace convert_detail {
 
 	template<typename F, typename T, typename Tag>
 	constexpr bool has_perform = false
-		|| has_perform_impl<F       &, T, Tag>()
 		|| has_perform_impl<F const &, T, Tag>()
 		|| has_perform_impl<F      &&, T, Tag>();
 
 	// check if a not-explicitly impossible conversion is defined.
-	template<typename F, typename T, typename Tag,
-		bool = has_possible<F, T, Tag>(),
-		bool = has_perform<F, T, Tag>
-	> struct can_convert : std::false_type{};
+	template<typename F, typename T, typename Tag, bool = has_possible<F, T, Tag>()> struct can_convert : std::false_type{};
 
 	template<typename F, typename T, typename Tag>
-	struct can_convert<F, T, Tag, true, true> : std::integral_constant<bool, conversion<F, T, Tag>::possible == true> {};
+	struct can_convert<F, T, Tag, true> : std::bool_constant<conversion<F, T, Tag>::possible> {};
 
 	template<typename F, typename T, typename Tag>
-	struct can_convert<F, T, Tag, false, true> : std::true_type {};
+	struct can_convert<F, T, Tag, false> : std::bool_constant<has_perform<F, T, Tag>> {};
 }
 
 /// Check if a conversion exists for the given types.

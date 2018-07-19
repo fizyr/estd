@@ -63,6 +63,18 @@ struct error {
 		return !!code;
 	}
 
+	/// Check if the error code is the same as another one.
+	bool operator== (std::error_code other) const { return code == other; }
+	bool operator!= (std::error_code other) const { return code != other; }
+
+	/// Check if the error code is equivalent to an error condition.
+	bool operator== (std::error_condition other) const { return code == other; }
+	bool operator!= (std::error_condition other) const { return code != other; }
+
+	/// Check if the error code is equivalent to an std::errc.
+	bool operator== (std::errc other) const { return code == other; }
+	bool operator!= (std::errc other) const { return code != other; }
+
 	/// Create a new error with the same description but a different error code.
 	error with_code(std::error_code code) const & { return {code, description}; }
 	error with_code(std::error_code code)      && { return {code, std::move(description)}; }

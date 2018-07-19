@@ -27,55 +27,28 @@
  */
 
 #pragma once
-#include "./conversion.hpp"
-
-#include "./traits.hpp"
-#include "../result/result.hpp"
-#include "../result/error.hpp"
-
 #include <type_traits>
-#include <utility>
 
 namespace estd {
 
-/// Specializable struct to define the default error type for parsing a T from an F.
-template<typename F, typename T, typename Tag = default_conversion>
-struct define_default_parse_error {
-	using type = error;
-};
+namespace detail {
+	template<typename A, typename B, typename = void>
+	struct is_comparible : std::false_type {};
 
-/// Get the default error type for parsing a T from an F.
-template<typename F, typename T, typename Tag = default_conversion>
-using default_parse_error = typename define_default_parse_error<F, T, Tag>::type;
-
-/// Convert a value to type T.
-template<typename T, typename Tag = default_conversion, typename F>
-T convert(F && from) {
-	return conversion<std::decay_t<F>, T, Tag>::perform(std::forward<F>(from));
+	template<typename A, typename B>
+	struct is_comparible<A, B, std::void_t<decltype(std::declval<A const &>() == std::declval<B const &>())>> : std::true_type{};
 }
 
-/// Convert a value to a result<T, E>.
+/// Test if the expression a == b is valid.
 /**
- * Shorthand for estd::convert<estd::result<T, E>, Tag>(from)
+ * Where a and b are const values.
  */
-template<typename T, typename E, typename Tag = default_conversion, typename F>
-result<T, E> parse(F && from) {
-	if constexpr (!estd::can_parse<F, T, E, Tag> && estd::can_convert<F, T, Tag>) {
-		return {estd::in_place_valid, convert<T, Tag>(std::forward<F>(from))};
-	} else {
-		return convert<result<T, E>, Tag>(std::forward<F>(from));
-	}
-}
+template<typename A, typename B> constexpr bool is_comparible = detail::is_comparible<A, B>::value;
 
-/// Convert a value to a result<T>.
+/// Test if the expression a == b is valid and b == a is valid.
 /**
- * Shorthand for estd::convert<estd::result<T, E>, Tag>(from)
+ * Where a and b are const values.
  */
-template<typename T, typename F>
-result<T, default_parse_error<F, T>> parse(F && from) {
-	using E   = default_parse_error<F, T>;
-	using Tag = default_conversion;
-	return parse<T, E, Tag>(std::forward<F>(from));
-}
+template<typename A, typename B> constexpr bool is_comparible2 = is_comparible<A, B> && is_comparible<B, A>;
 
 }

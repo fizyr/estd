@@ -26,56 +26,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-#include "./conversion.hpp"
+#include "result/error.hpp"
+#include "traits/is_comparible.hpp"
 
-#include "./traits.hpp"
-#include "../result/result.hpp"
-#include "../result/error.hpp"
-
-#include <type_traits>
-#include <utility>
+#include "../catch.hpp"
 
 namespace estd {
 
-/// Specializable struct to define the default error type for parsing a T from an F.
-template<typename F, typename T, typename Tag = default_conversion>
-struct define_default_parse_error {
-	using type = error;
-};
 
-/// Get the default error type for parsing a T from an F.
-template<typename F, typename T, typename Tag = default_conversion>
-using default_parse_error = typename define_default_parse_error<F, T, Tag>::type;
-
-/// Convert a value to type T.
-template<typename T, typename Tag = default_conversion, typename F>
-T convert(F && from) {
-	return conversion<std::decay_t<F>, T, Tag>::perform(std::forward<F>(from));
+TEST_CASE("error compares to std::error_code", "[result]") {
+	static_assert(is_comparible<error, std::error_code>);
+	REQUIRE(error{std::errc::invalid_argument} == make_error_code(std::errc::invalid_argument));
+	REQUIRE(error{std::errc::invalid_argument} != make_error_code(std::errc::address_in_use));
 }
 
-/// Convert a value to a result<T, E>.
-/**
- * Shorthand for estd::convert<estd::result<T, E>, Tag>(from)
- */
-template<typename T, typename E, typename Tag = default_conversion, typename F>
-result<T, E> parse(F && from) {
-	if constexpr (!estd::can_parse<F, T, E, Tag> && estd::can_convert<F, T, Tag>) {
-		return {estd::in_place_valid, convert<T, Tag>(std::forward<F>(from))};
-	} else {
-		return convert<result<T, E>, Tag>(std::forward<F>(from));
-	}
+TEST_CASE("error compares to std::error_condition", "[result]") {
+	static_assert(is_comparible<error, std::errc>);
+	REQUIRE(error{std::errc::invalid_argument} == make_error_condition(std::errc::invalid_argument));
+	REQUIRE(error{std::errc::invalid_argument} != make_error_condition(std::errc::address_in_use));
 }
 
-/// Convert a value to a result<T>.
-/**
- * Shorthand for estd::convert<estd::result<T, E>, Tag>(from)
- */
-template<typename T, typename F>
-result<T, default_parse_error<F, T>> parse(F && from) {
-	using E   = default_parse_error<F, T>;
-	using Tag = default_conversion;
-	return parse<T, E, Tag>(std::forward<F>(from));
+TEST_CASE("error compares to std::errc", "[result]") {
+	static_assert(is_comparible<error, std::error_condition>);
+	REQUIRE(error{std::errc::invalid_argument} == std::errc::invalid_argument);
+	REQUIRE(error{std::errc::invalid_argument} != std::errc::address_in_use);
+}
+
+TEST_CASE("error is not comparible with itself", "[result]") {
+	static_assert(is_comparible<error, error> == false);
 }
 
 }

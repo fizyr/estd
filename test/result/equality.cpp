@@ -97,6 +97,16 @@ TEST_CASE("compare results for equality", "[result]") {
 		REQUIRE((result<A, int>(in_place_error, 5)) != 6);
 		REQUIRE((result<A, int>(in_place_valid, 5)) != 5);
 	}
+
+	SECTION("compare with raw comparible") {
+		REQUIRE((result<char, A>(in_place_valid, 5)) == 5);
+		REQUIRE((result<char, A>(in_place_valid, 5)) != 6);
+		REQUIRE((result<char, A>(in_place_error, 5)) != 5);
+
+		REQUIRE((result<A, char>(in_place_error, 5)) == 5);
+		REQUIRE((result<A, char>(in_place_error, 5)) != 6);
+		REQUIRE((result<A, char>(in_place_valid, 5)) != 5);
+	}
 }
 
 }
