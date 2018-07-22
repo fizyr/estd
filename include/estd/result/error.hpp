@@ -105,6 +105,35 @@ struct error {
 		return std::string{code.category().name()} + " error " + std::to_string(code.value()) + ": " + code.message();
 	}
 
+	/// Format the description stack without the error code.
+	/**
+	 * Returns a string in the format of:
+	 *   {description N}: {description N-1}: ... {description 1}
+	 */
+	std::string format_description(std::size_t additional_size = 0) const {
+		// Determine the total message size.
+		std::size_t size = additional_size;
+		for (std::string const & string : description) {
+			size += string.size() + 2;
+		}
+		if (size > 2) size -= 2;
+
+		// Make a string with the right capacity.
+		std::string result;
+		result.reserve(size);
+
+		// Add all descriptions, back to front.
+		for (auto i = description.rbegin(); i != description.rend(); ++i) {
+			if (&*i == &description.front()) {
+				result += *i;
+			} else {
+				result += *i + ": ";
+			}
+		}
+
+		return result;
+	}
+
 	/// Format the error code along with the description stack.
 	/**
 	 * Returns a string in the format of:
@@ -113,23 +142,9 @@ struct error {
 	 * Where {error} is the output of `format_code()`.
 	 */
 	std::string format() const {
-		// Determine the total message size.
 		std::string code_description = format_code();
-		std::size_t size = code_description.size();
-		for (std::string const & string : description) {
-			size += string.size() + 2;
-		}
-
-		// Make a string with the right capacity.
-		std::string result;
-		result.reserve(size);
-
-		// Add all descriptions, back to front.
-		for (auto i = description.rbegin(); i != description.rend(); ++i) {
-			result += *i + ": ";
-		}
-
-		// Add the description of the error code.
+		std::string result = format_description(code_description.size() + 2);
+		result += ": ";
 		result += code_description;
 		return result;
 	}
