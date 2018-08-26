@@ -150,4 +150,28 @@ struct error {
 	}
 };
 
+class error_exception : public std::exception {
+	estd::error error_;
+	std::string formatted_;
+
+public:
+	error_exception(estd::error error) : error_{std::move(error)} {
+		formatted_ = error_.format();
+	}
+
+	char const * what() const noexcept override {
+		return formatted_.c_str();
+	}
+
+	estd::error const & error() const & { return error_; }
+	estd::error       & error()       & { return error_; }
+	estd::error      && error()      && { return std::move(error_); }
+
+	std::error_code const & code() const { return error_.code; }
+};
+
+inline error_exception make_default_exception(error error) {
+	return error_exception{std::move(error)};
+}
+
 }
