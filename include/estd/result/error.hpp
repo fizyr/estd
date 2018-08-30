@@ -143,6 +143,8 @@ struct error {
 	 */
 	std::string format() const {
 		std::string code_description = format_code();
+		if (description.empty()) return code_description;
+
 		std::string result = format_description(code_description.size() + 2);
 		result += ": ";
 		result += code_description;
