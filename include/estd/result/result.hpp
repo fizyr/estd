@@ -29,6 +29,7 @@
 #pragma once
 #include "in_place.hpp"
 #include "detail/result_storage.hpp"
+#include "detail/map.hpp"
 #include "../traits/is_comparible.hpp"
 
 #include <stdexcept>
@@ -112,28 +113,33 @@ public:
 	explicit operator bool() const { return valid(); }
 
 	/// Get the contained value without checking if it is valid.
-	add_lref <T> operator* ()       & { return data_.as_valid(); }
-	add_clref<T> operator* () const & { return data_.as_valid(); }
-	add_rref <T> operator* ()      && { return std::move(data_.as_valid()); }
+	decltype(auto) operator* ()       & { return data_.as_valid(); }
+	decltype(auto) operator* () const & { return data_.as_valid(); }
+	decltype(auto) operator* ()      && { return std::move(data_).as_valid(); }
 
 	std::remove_reference_t<T> const * operator-> () const { return &data_.as_valid(); }
 	std::remove_reference_t<T>       * operator-> ()       { return &data_.as_valid(); }
+
+	/// Get the contained value without checking if it is valid.
+	decltype(auto) value_unchecked()       & { return data_.as_valid(); }
+	decltype(auto) value_unchecked() const & { return data_.as_valid(); }
+	decltype(auto) value_unchecked()      && { return std::move(data_).as_valid(); }
 
 	/// Get the contained value.
 	/**
 	 * \throws make_default_exception(error()) if the result is not valid.
 	 */
-	add_lref <T> value()       & { ensure_value(); return data_.as_valid(); }
-	add_clref<T> value() const & { ensure_value(); return data_.as_valid(); }
-	add_rref <T> value()      && { return std::move(value()); }
+	decltype(auto) value()       & { ensure_value(); return data_.as_valid(); }
+	decltype(auto) value() const & { ensure_value(); return data_.as_valid(); }
+	decltype(auto) value()      && { ensure_value(); return std::move(data_).as_valid(); }
 
 	/// Get the contained value.
 	/**
 	 * \throws make_exception(error()) if the result is not valid.
 	 */
-	template<typename F> add_lref<T>  value(F && make_exception)       & { ensure_value(std::forward<F>(make_exception)); return data_.as_valid(); }
-	template<typename F> add_clref<T> value(F && make_exception) const & { ensure_value(std::forward<F>(make_exception)); return data_.as_valid(); }
-	template<typename F> add_rref<T>  value(F && make_exception)      && { std::move(value(std::forward<F>(make_exception))); }
+	template<typename F> decltype(auto) value(F && make_exception)       & { ensure_value(std::forward<F>(make_exception)); return data_.as_valid(); }
+	template<typename F> decltype(auto) value(F && make_exception) const & { ensure_value(std::forward<F>(make_exception)); return data_.as_valid(); }
+	template<typename F> decltype(auto) value(F && make_exception)      && { ensure_value(std::forward<F>(make_exception)); return std::move(data_).as_valid(); }
 
 	/// Get the contained value or a fallback if the result is not valid.
 	template<bool B = 1, typename = std::enable_if_t<B && !std::is_abstract_v<DecayedT>>>
@@ -143,17 +149,17 @@ public:
 	}
 
 	/// Get the held error without checking if it is valid.
-	add_lref<E>   error_unchecked()       & { return data_.as_error(); }
-	add_clref<E>  error_unchecked() const & { return data_.as_error(); }
-	add_rref<E>   error_unchecked()      && { return std::move(data_.as_error()); }
+	decltype(auto) error_unchecked()       & { return data_.as_error(); }
+	decltype(auto) error_unchecked() const & { return data_.as_error(); }
+	decltype(auto) error_unchecked()      && { return std::move(data_).as_error(); }
 
 	/// Get the held error.
 	/**
 	 * \throws a logic error if the result is valid.
 	 */
-	add_lref <E> error()       & { ensure_error(); return data_.as_error(); }
-	add_clref<E> error() const & { ensure_error(); return data_.as_error(); }
-	add_rref <E> error()      && { ensure_error(); return std::move(data_.as_error()); }
+	decltype(auto) error()       & { ensure_error(); return data_.as_error(); }
+	decltype(auto) error() const & { ensure_error(); return data_.as_error(); }
+	decltype(auto) error()      && { ensure_error(); return std::move(data_).as_error(); }
 
 	/// Get the held error, or a fallback value if the result is valid.
 	DecayedE error_or(DecayedE fallback) const {
@@ -224,37 +230,37 @@ public:
 	void value(MakeException && make_exception) const { ensure_value(std::forward<MakeException>(make_exception)); }
 
 	/// Get the held error without checking if it is valid.
-	add_lref <E> error_unchecked()       & { return *error_; }
-	add_clref<E> error_unchecked() const & { return *error_; }
-	add_rref <E> error_unchecked()      && { return std::move(error_unchecked()); }
+	decltype(auto) error_unchecked()       & { return error_->access(); }
+	decltype(auto) error_unchecked() const & { return error_->access(); }
+	decltype(auto) error_unchecked()      && { return std::move(*error_).access(); }
 
 	/// Get the held error.
 	/**
 	 * \throws a logic error if the result is valid.
 	 */
-	add_lref <E> error()       & { ensure_error(); return *error_; }
-	add_clref<E> error() const & { ensure_error(); return *error_; }
-	add_rref <E> error()      && { std::move(error()); }
+	decltype(auto) error()       & { ensure_error(); return error_->access(); }
+	decltype(auto) error() const & { ensure_error(); return error_->access(); }
+	decltype(auto) error()      && { ensure_error(); std::move(*error_).access(); }
 
 	/// Get the held error, or a fallback value if the result doesn't hold an error.
-	DecayedE error_or(DecayedE fallback) const & { if (*this) return std::move(fallback); return *error_; }
+	auto error_or(DecayedE fallback) const & { if (*this) return std::move(fallback); return error_->access(); }
 
 	/// Get the held error, or a default constructed error if the result is valid.
-	std::remove_reference_t<E> error_or() const noexcept(noexcept(E{})) {
+	auto error_or() const noexcept(noexcept(E{})) {
 		if (*this) return std::remove_reference_t<E>{};
-		return *error_;
+		return error_->access();
 	}
 
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.
 	void ensure_value() const {
-		if (!*this) throw make_default_exception(*error_);
+		if (!*this) throw make_default_exception(error_->access());
 	}
 
 	/// \throws make_exception(error()) if the result is not valid.
 	template<typename MakeException>
 	void ensure_value(MakeException && make_exception) const {
-		if (!*this) throw std::forward<MakeException>(make_exception)(*error_);
+		if (!*this) throw std::forward<MakeException>(make_exception)(error_->access());
 	}
 
 	/// \throws logic_error if the result is valid.

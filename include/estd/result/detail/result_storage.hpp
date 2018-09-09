@@ -39,13 +39,27 @@ namespace detail {
 
 // Wrapper to transparantly store references in result<T, E>
 template<typename T>
+struct lvalue_wrapper {
+	T value_;
+
+	lvalue_wrapper(T const & value) : value_{value} {}
+	lvalue_wrapper(T      && value) : value_{std::move(value)} {}
+
+	template<typename ...Args>
+	explicit lvalue_wrapper(Args && ...args) : value_(std::forward<Args>(args)...) {}
+
+	T       &  access()       &  { return value_; }
+	T const &  access() const &  { return value_; }
+	T       && access()       && { return std::move(value_); }
+	T const && access() const && { return std::move(value_); }
+};
+
+// Wrapper to transparantly store references in result<T, E>
+template<typename T>
 struct lvalue_ref_wrapper {
 	T * value_;
 	lvalue_ref_wrapper(T & value) : value_{&value} {}
-	operator T        & ()        & { return *value_; }
-	operator T const  & () const  & { return *value_; }
-	operator T       && ()       && { return std::move(*value_); }
-	operator T const && () const && { return std::move(*value_); }
+	T & access() const { return *value_; }
 };
 
 // Wrapper to transparantly store rvalue references in result<T, E>
@@ -53,14 +67,11 @@ template<typename T>
 struct rvalue_ref_wrapper {
 	T * value_;
 	rvalue_ref_wrapper(T && value) : value_{&value} {}
-	operator T        & ()        & { return *value_; }
-	operator T const  & () const  & { return *value_; }
-	operator T       && ()       && { return std::move(*value_); }
-	operator T const && () const && { return std::move(*value_); }
+	T && access() const { return std::move(*value_); }
 };
 
 // Determine the storage type in a result<T, E> for some type.
-template<typename T> struct result_type_storage_impl       { using type = T; };
+template<typename T> struct result_type_storage_impl       { using type = lvalue_wrapper<T>; };
 template<typename T> struct result_type_storage_impl<T  &> { using type = lvalue_ref_wrapper<T>; };
 template<typename T> struct result_type_storage_impl<T &&> { using type = rvalue_ref_wrapper<T>; };
 template<typename T> using result_type_storage = typename result_type_storage_impl<T>::type;
@@ -124,29 +135,29 @@ public:
 
 	result_storage_base(result_storage_base const & other) {
 		is_valid_ = other.is_valid_;
-		if (is_valid_) new (&valid_) Valid(other.valid_);
-		else           new (&error_) Error(other.error_);
+		if (is_valid_) new (&valid_) Valid(other.valid_.access());
+		else           new (&error_) Error(other.error_.access());
 	}
 
 	result_storage_base(result_storage_base && other) {
 		is_valid_ = other.is_valid_;
-		if (is_valid_) new (&valid_) Valid(std::move(other.valid_));
-		else           new (&error_) Error(std::move(other.error_));
+		if (is_valid_) new (&valid_) Valid(std::move(other.valid_).access());
+		else           new (&error_) Error(std::move(other.error_).access());
 	}
 
 	/// Allow explicit conversion from ErrorOr<T2, E2>.
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> const & other) {
 		is_valid_ = other.is_valid_;
-		if (is_valid_) new (&valid_) Valid(other.valid_);
-		else          new (&error_) Error(other.error_);
+		if (is_valid_) new (&valid_) Valid(other.valid_.access());
+		else          new (&error_) Error(other.error_.access());
 	}
 
 	template<typename T2, typename E2, typename C = std::enable_if_t<explicitly_convertible_<T2, E2>>>
 	explicit result_storage_base(result_storage_base<T2, E2> && other) {
 		is_valid_ = other.is_valid_;
-		if (is_valid_) new (&valid_) Valid(std::move(other.valid_));
-		else           new (&error_) Error(std::move(other.error_));
+		if (is_valid_) new (&valid_) Valid(std::move(other.valid_).access());
+		else           new (&error_) Error(std::move(other.error_).access());
 	}
 
 	result_storage_base & operator= (result_storage_base const & other) {
@@ -178,15 +189,13 @@ public:
 
 	bool valid() const { return is_valid_; }
 
-	add_lref <T> as_valid()        & { return valid_; }
-	add_rref <T> as_valid()       && { return valid_; }
-	add_clref<T> as_valid() const  & { return valid_; }
-	add_crref<T> as_valid() const && { return valid_; }
+	decltype(auto) as_valid()        & { return valid_.access(); }
+	decltype(auto) as_valid()       && { return std::move(valid_).access(); }
+	decltype(auto) as_valid() const  & { return valid_.access(); }
 
-	add_lref <E> as_error()        & { return error_; }
-	add_rref <E> as_error()       && { return error_; }
-	add_clref<E> as_error() const  & { return error_; }
-	add_crref<E> as_error() const && { return error_; }
+	decltype(auto) as_error()        & { return error_.access(); }
+	decltype(auto) as_error()       && { return std::move(error_).access(); }
+	decltype(auto) as_error() const  & { return error_.access(); }
 };
 
 

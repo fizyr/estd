@@ -72,12 +72,12 @@ void test_error_observers() {
 	static_assert_same<decltype(std::declval<R const &>().error()),  const_E>();
 	static_assert_same<decltype(std::declval<R      &&>().error()), rvalue_E>();
 
-	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<       E>())), std::decay_t<E>>();
-	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval< const_E>())), std::decay_t<E>>();
-	static_assert_same<decltype(std::declval<R const &>().error_or(std::declval< const_E>())), std::decay_t<E>>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<rvalue_E>())), std::decay_t<E>>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<       E>())), std::decay_t<E>>();
-	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval< const_E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R       &>().error_or(std::declval<E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R const &>().error_or(std::declval<E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<E>())), std::decay_t<E>>();
+	static_assert_same<decltype(std::declval<R      &&>().error_or(std::declval<E>())), std::decay_t<E>>();
 }
 
 void test() {
@@ -104,9 +104,9 @@ void test() {
 	static_assert(std::is_convertible_v<int const &&, result<Foo, int const &>>);
 
 	/// Test return type of observers.
-	test_valid_observers<result<int       &, Foo>, int       &, int const &, int       &>();
+	test_valid_observers<result<int       &, Foo>, int       &, int       &, int       &>();
 	test_valid_observers<result<int const &, Foo>, int const &, int const &, int const &>();
-	test_error_observers<result<Foo, int       &>, int       &, int const &, int       &>();
+	test_error_observers<result<Foo, int       &>, int       &, int       &, int       &>();
 	test_error_observers<result<Foo, int const &>, int const &, int const &, int const &>();
 
 	test_valid_observers<result<int      , Foo>, int       &, int const &, int       &&>();
