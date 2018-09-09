@@ -1,5 +1,6 @@
 declare_compile_tests(test_${PROJECT_NAME}_traits_
 	container
+	decay_if
 	is_comparible
 	is_integer_sequence
 	is_tuple
