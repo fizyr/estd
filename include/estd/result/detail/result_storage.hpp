@@ -37,6 +37,11 @@
 namespace estd {
 namespace detail {
 
+// Wrapper to transparantly store void values result<T, E>
+struct void_wrapper {
+	void access() const {}
+};
+
 // Wrapper to transparantly store references in result<T, E>
 template<typename T>
 struct lvalue_wrapper {
@@ -74,6 +79,7 @@ struct rvalue_ref_wrapper {
 template<typename T> struct result_type_storage_impl       { using type = lvalue_wrapper<T>; };
 template<typename T> struct result_type_storage_impl<T  &> { using type = lvalue_ref_wrapper<T>; };
 template<typename T> struct result_type_storage_impl<T &&> { using type = rvalue_ref_wrapper<T>; };
+template<>           struct result_type_storage_impl<void> { using type = void_wrapper; };
 template<typename T> using result_type_storage = typename result_type_storage_impl<T>::type;
 
 template<typename T, typename E>
