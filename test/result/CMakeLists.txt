@@ -4,6 +4,7 @@ declare_tests(test_${PROJECT_NAME}_result_
 	copyable
 	error
 	equality
+	map
 	observers
 	references
 	tracker

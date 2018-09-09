@@ -173,6 +173,26 @@ public:
 		return data_.as_error();
 	}
 
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map(F && func) const &  { return detail::map_result_value<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map(F && func)       &  { return detail::map_result_value<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map(F && func)       && { return detail::map_result_value<true>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_no_decay(F && func) const &  { return detail::map_result_value<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_no_decay(F && func)       &  { return detail::map_result_value<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_no_decay(F && func)       && { return detail::map_result_value<false>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_error(F && func) const &  { return detail::map_result_error<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error(F && func)       &  { return detail::map_result_error<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error(F && func)       && { return detail::map_result_error<true>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_error_no_decay(F && func) const &  { return detail::map_result_error<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error_no_decay(F && func)       &  { return detail::map_result_error<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error_no_decay(F && func)       && { return detail::map_result_error<false>(std::move(*this), std::forward<F>(func)); }
+
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.
 	void ensure_value() const {
@@ -217,13 +237,19 @@ public:
 	result(E       && error_value) : result{in_place_error, std::move(error_value)} {}
 
 	/// Check if the result is valid.
-	explicit operator bool() const { return !error_; }
+	bool valid() const { return !error_; }
+
+	/// Check if the result is valid.
+	explicit operator bool() const { return valid(); }
 
 	/// \throws error() if the result is not valid.
 	void operator* () const { return value(); }
 
 	/// \throws make_default_exception(error()) if the result is not valid.
 	void value() const { ensure_value(); }
+
+	/// No-op for compatibility with result<T, E>.
+	void value_unchecked() const {};
 
 	/// \throws make_exception(error()) if the result is not valid.
 	template<typename MakeException>
@@ -250,6 +276,26 @@ public:
 		if (*this) return std::remove_reference_t<E>{};
 		return error_->access();
 	}
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map(F && func) const &  { return detail::map_result_value<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map(F && func)       &  { return detail::map_result_value<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map(F && func)       && { return detail::map_result_value<true>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_no_decay(F && func) const &  { return detail::map_result_value<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_no_decay(F && func)       &  { return detail::map_result_value<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_no_decay(F && func)       && { return detail::map_result_value<false>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_error(F && func) const &  { return detail::map_result_error<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error(F && func)       &  { return detail::map_result_error<true>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error(F && func)       && { return detail::map_result_error<true>(std::move(*this), std::forward<F>(func)); }
+
+	/// Apply a function to the value, or return the error unmodified.
+	template<typename F> decltype(auto) map_error_no_decay(F && func) const &  { return detail::map_result_error<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error_no_decay(F && func)       &  { return detail::map_result_error<false>(*this,            std::forward<F>(func)); }
+	template<typename F> decltype(auto) map_error_no_decay(F && func)       && { return detail::map_result_error<false>(std::move(*this), std::forward<F>(func)); }
 
 private:
 	/// \throws make_default_exception(error()) if the result is not valid.
