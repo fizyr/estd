@@ -8,3 +8,7 @@ declare_tests(test_${PROJECT_NAME}_result_
 	references
 	tracker
 )
+
+declare_compile_tests(test_${PROJECT_NAME}_result_static_
+	traits
+)
