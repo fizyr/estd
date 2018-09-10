@@ -1,4 +1,7 @@
 #pragma once
+#include "./unspecified_category.hpp"
+
+#include <initializer_list>
 #include <string>
 #include <system_error>
 #include <type_traits>
@@ -40,23 +43,41 @@ struct error {
 	/// Construct an empty error representing success.
 	error() {}
 
-	/// Construct an error with a code and description.
+	/// Construct an error with a code and description stack.
 	error(std::error_code code, std::vector<std::string> description = {}) :
 		code{code},
 		description(std::move(description)) {}
+
+	/// Construct an error with a code and description stack.
+	error(std::error_code code, std::initializer_list<std::string> description) :
+		code{code},
+		description(std::vector<std::string>{std::move(description)}) {}
 
 	/// Construct an error with a code and description.
 	error(std::error_code code, std::string description) :
 		code{code},
 		description{std::move(description)} {}
 
-	/// Construct an error with a code and description.
+	/// Construct an error with a code and description stack.
 	template<typename T, typename = std::enable_if_t<can_make_error_code<T>>>
 	error(T code, std::vector<std::string> description = {}) : error{make_error_code(code), std::move(description)} {}
+
+	/// Construct an error with a code and description stack.
+	template<typename T, typename = std::enable_if_t<can_make_error_code<T>>>
+	error(T code, std::initializer_list<std::string> description) : error{make_error_code(code), std::vector<std::string>{std::move(description)}} {}
 
 	/// Construct an error with a code and description.
 	template<typename T, typename = std::enable_if_t<can_make_error_code<T>>>
 	error(T code, std::string description) : error{make_error_code(code), std::move(description)} {}
+
+	/// Create an unspecified error with a description.
+	explicit error(std::string description) : error{unspecified_errc::unspecified, std::move(description)} {};
+
+	///// Create an unspecified error with a description stack.
+	explicit error(std::vector<std::string> description) : error{unspecified_errc::unspecified, std::move(description)} {}
+
+	/// Create an unspecified error with a description stack.
+	explicit error(std::initializer_list<std::string> description) : error(std::vector<std::string>{std::move(description)}) {};
 
 	/// Check if this error represents an error and not sucess.
 	explicit operator bool() const noexcept {
@@ -102,6 +123,11 @@ struct error {
 	 *  {category name} error {error number}: {error message}
 	 */
 	std::string format_code() const {
+		// If the error is from the special unspecified category,
+		// only format the category name and integer value, not the message.
+		if (code.category() == unspecified_error_category()) {
+			return std::string{code.category().name()} + " error " + std::to_string(code.value());
+		}
 		return std::string{code.category().name()} + " error " + std::to_string(code.value()) + ": " + code.message();
 	}
 
@@ -142,6 +168,12 @@ struct error {
 	 * Where {error} is the output of `format_code()`.
 	 */
 	std::string format() const {
+		// If the error is the special unspecified error and there is a description,
+		// show only the description.
+		if (code == unspecified_errc::unspecified && !description.empty()) {
+			return format_description();
+		}
+
 		std::string code_description = format_code();
 		if (description.empty()) return code_description;
 
