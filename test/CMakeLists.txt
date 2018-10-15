@@ -23,7 +23,9 @@ endfunction()
 
 function(declare_compile_test name)
 	add_library(${name} EXCLUDE_FROM_ALL ${ARGN})
-	add_dependencies(tests ${name})
+	if (TARGET tests)
+		add_dependencies(tests ${name})
+	endif()
 
 	get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
 	list(APPEND check_target DEPENDS ${name})
@@ -43,7 +45,6 @@ add_subdirectory(result)
 add_subdirectory(traits)
 add_subdirectory(tuple)
 add_subdirectory(utility)
-
 
 get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
 add_custom_target(${check_target} USES_TERMINAL)
