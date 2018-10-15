@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(estd)
-set(PROJECT_VERSION 0.1.11)
+set(PROJECT_VERSION 0.1.12)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
