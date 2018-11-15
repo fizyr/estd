@@ -39,6 +39,7 @@ function(declare_compile_tests prefix)
 endfunction()
 
 
+add_subdirectory(any)
 add_subdirectory(convert)
 add_subdirectory(range)
 add_subdirectory(result)
