@@ -46,6 +46,7 @@ add_subdirectory(result)
 add_subdirectory(traits)
 add_subdirectory(tuple)
 add_subdirectory(utility)
+add_subdirectory(view)
 
 get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
 add_custom_target(${check_target} USES_TERMINAL)
