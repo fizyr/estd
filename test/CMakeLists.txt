@@ -41,6 +41,7 @@ endfunction()
 
 add_subdirectory(any)
 add_subdirectory(convert)
+add_subdirectory(heap_array)
 add_subdirectory(range)
 add_subdirectory(result)
 add_subdirectory(traits)
