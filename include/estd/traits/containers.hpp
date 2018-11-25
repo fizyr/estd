@@ -61,6 +61,9 @@ namespace detail {
 
 	template<typename T, typename = void> struct has_erase : std::false_type {};
 	template<typename T> struct has_erase<T, std::void_t<decltype(declval<T>().erase(declval<const_iterator_type<T>>(), declval<const_iterator_type<T>>()))>> : std::true_type {};
+
+	template<typename T, typename = void> struct has_data : std::false_type {};
+	template<typename T> struct has_data<T, std::void_t<decltype(declval<T>().data())>> : std::true_type {};
 }
 
 /// Test if a type T is iterable (has a begin() and end() member)
@@ -78,10 +81,19 @@ template<typename T> constexpr bool has_reserve = detail::has_reserve<T>();
 /// Test if a type T has a erase() member.
 template<typename T> constexpr bool has_erase = detail::has_erase<T>();
 
+/// Test if a type T has a data() member.
+template<typename T> constexpr bool has_data = detail::has_data<T>();
+
 /// Test if a type T is a container.
 /**
  * Currently this is a relaxed check. It only tests if the members begin(), end() and size() exist.
  */
 template<typename T> constexpr bool is_container = is_iterable<T> && has_size<T>;
+
+/// Test if a type T is a contiguous container.
+/**
+ * Tests is_container<T> and has_data<T>.
+ */
+template<typename T> constexpr bool is_contiguous_container = is_container<T> && has_data<T>;
 
 }
