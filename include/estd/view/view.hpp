@@ -80,8 +80,8 @@ public:
 	constexpr view(Container const & container) : view(container.data(), container.size()) {}
 
 	/// Disallow creation of a view from pointers that are implicitly convertible, if the size of the other type is different.
-	template<typename B, std::enable_if_t<sizeof(B) != sizeof(T)>> constexpr view(B * begin, B * end)     = delete;
-	template<typename B, std::enable_if_t<sizeof(B) != sizeof(T)>> constexpr view(B * begin, std::size_t) = delete;
+	template<typename B, typename = std::enable_if_t<sizeof(B) != sizeof(T)>> constexpr view(B * begin, B * end)     = delete;
+	template<typename B, typename = std::enable_if_t<sizeof(B) != sizeof(T)>> constexpr view(B * begin, std::size_t) = delete;
 
 	/// Allow implicit conversion of a view<T> to a view<T const>.
 	constexpr operator view<T const>() {

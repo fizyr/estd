@@ -155,5 +155,28 @@ TEST_CASE("mutable views can mutate data", "[view]") {
 	}
 }
 
+/// Verify that construction from dangerous implicitly convertible pointer types is not allowed.
+void check_construction_from_convertible_pointers() {
+	/// Base class for this test.
+	struct Base {
+		int foo;
+	};
+
+	/// Derived class with the same size as the base class.
+	struct SameSize : Base {};
+
+	/// Derived class that is bigger than the base class.
+	struct Bigger : Base {
+		int bar;
+	};
+
+	// Test that a view can be constructed from pointers to the base type, or pointers to derived types with the same size.
+	static_assert(std::is_constructible<view<Base>, Base     *, Base     *>() == true);
+	static_assert(std::is_constructible<view<Base>, SameSize *, SameSize *>() == true);
+
+	// But not from pointers to derived types that are a bigger.
+	static_assert(std::is_constructible<view<Base>, Bigger *, Bigger *>() == false);
+}
+
 
 }
