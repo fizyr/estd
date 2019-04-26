@@ -9,7 +9,11 @@ namespace estd {
 namespace detail {
 	template<typename T> struct full_type_name {
 		operator std::string() {
+#ifdef _MSC_VER
+			return typeid(T).name();
+#else
 			return demangle(typeid(T).name());
+#endif
 		}
 	};
 }

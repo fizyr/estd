@@ -14,6 +14,12 @@
 namespace estd {
 
 #ifdef ESTD_DEMANGLE_CXXABI
+
+/// Demangle a mangled C++ name, if possible.
+/**
+ * Not all platforms support programatically de-mangling names.
+ * This function may simply return the mangled name as-is.
+ */
 std::string demangle(std::string const & mangled) {
 	int status;
 	char * demangled = abi::__cxa_demangle(mangled.c_str(), nullptr, nullptr, &status);
@@ -26,10 +32,18 @@ std::string demangle(std::string const & mangled) {
 	std::free(demangled);
 	return string;
 }
+
 #else
+
+/// Demangle a mangled C++ name, if possible.
+/**
+ * Not all platforms support programatically de-mangling names.
+ * This function may simply return the mangled name as-is.
+ */
 std::string demangle(std::string const & mangled) {
 	return mangled;
 }
+
 #endif
 
 }
