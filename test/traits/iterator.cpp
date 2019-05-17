@@ -28,9 +28,10 @@
 
 #include "traits/iterator.hpp"
 
-#include <vector>
-#include <list>
 #include <iterator>
+#include <list>
+#include <string>
+#include <vector>
 
 namespace estd {
 
