@@ -163,7 +163,7 @@ public:
 
 	/// Get the held error, or a fallback value if the result is valid.
 	DecayedE error_or(DecayedE fallback) const {
-		if (*this) return std::move(fallback);
+		if (*this) return fallback;
 		return data_.as_error();
 	}
 
@@ -269,7 +269,7 @@ public:
 	decltype(auto) error()      && { ensure_error(); std::move(*error_).access(); }
 
 	/// Get the held error, or a fallback value if the result doesn't hold an error.
-	auto error_or(DecayedE fallback) const & { if (*this) return std::move(fallback); return error_->access(); }
+	auto error_or(DecayedE fallback) const & { if (*this) return fallback; return error_->access(); }
 
 	/// Get the held error, or a default constructed error if the result is valid.
 	auto error_or() const noexcept(noexcept(E{})) {
