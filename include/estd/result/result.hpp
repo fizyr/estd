@@ -266,7 +266,7 @@ public:
 	 */
 	decltype(auto) error()       & { ensure_error(); return error_->access(); }
 	decltype(auto) error() const & { ensure_error(); return error_->access(); }
-	decltype(auto) error()      && { ensure_error(); std::move(*error_).access(); }
+	decltype(auto) error()      && { ensure_error(); return std::move(*error_).access(); }
 
 	/// Get the held error, or a fallback value if the result doesn't hold an error.
 	auto error_or(DecayedE fallback) const & { if (*this) return fallback; return error_->access(); }

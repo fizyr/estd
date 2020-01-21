@@ -126,25 +126,29 @@ TEST_CASE("valid result<void> observers", "[result]") {
 }
 
 TEST_CASE("invalid result<void> observers", "[result]") {
-	result<void, Error> valid{in_place_error, 1};
+	result<void, Error> invalid{in_place_error, 1};
 	auto make_exception = [] (Error const &) { return 5; };
 
 	SECTION("operator bool") {
-		REQUIRE(!valid);
+		REQUIRE(!invalid);
 	}
 
 	SECTION("value observers") {
-		REQUIRE_THROWS_AS(valid.value(),               Error &);
-		REQUIRE_THROWS_AS(*valid,                      Error &);
-		REQUIRE_THROWS_AS(valid.value(make_exception), int);
+		REQUIRE_THROWS_AS(invalid.value(), Error &);
+		REQUIRE_THROWS_AS(*invalid, Error &);
+		REQUIRE_THROWS_AS(invalid.value(make_exception), int);
 	}
 
 	SECTION("error observers") {
-		REQUIRE(valid.error() == Error{1});
-		REQUIRE(valid.error_or(Error{7}) == Error{1});
-		REQUIRE(valid.error_or() == Error{1});
-		valid.error() = Error{2};
-		REQUIRE(valid.error() == Error{2});
+		REQUIRE(invalid.error() == Error{1});
+		REQUIRE(invalid.error_or(Error{7}) == Error{1});
+		REQUIRE(invalid.error_or() == Error{1});
+		invalid.error() = Error{2};
+		REQUIRE(invalid.error() == Error{2});
+	}
+
+	SECTION("error observers for rvalues") {
+		REQUIRE(std::move(invalid).error() == Error{1});
 	}
 }
 
