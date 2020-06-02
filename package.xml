@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
 	<name>estd</name>
-	<version>0.3.3</version>
+	<version>0.3.4</version>
 	<description>Extended C++ library</description>
 	<license>BSD-3-Clause</license>
 
