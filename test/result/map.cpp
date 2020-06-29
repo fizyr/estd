@@ -26,13 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "../static_assert_same.hpp"
 #include "result.hpp"
+#include "result/catch_string_conversions.hpp"
 #include "tracker.hpp"
 
-#include "../catch.hpp"
-#include "../static_assert_same.hpp"
-
-#include "result/catch_string_conversions.hpp"
+#include <catch2/catch.hpp>
 
 namespace estd {
 

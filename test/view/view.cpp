@@ -26,10 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "../static_assert_same.hpp"
 #include "view/view.hpp"
 
-#include "../catch.hpp"
-#include "../static_assert_same.hpp"
+#include <catch2/catch.hpp>
 
 #include <vector>
 
@@ -48,8 +48,8 @@ TEST_CASE("basic observers work", "[view]") {
 
 		CHECK(const_view.at(0) == 1);
 		CHECK(const_view.at(4) == 5);
-		CHECK_THROWS_AS(const_view.at(-1), std::range_error const &);
-		CHECK_THROWS_AS(const_view.at(5), std::range_error const &);
+		CHECK_THROWS_AS(const_view.at(-1), std::range_error);
+		CHECK_THROWS_AS(const_view.at(5), std::range_error);
 	}
 
 	SECTION("for mutable views") {
@@ -61,8 +61,8 @@ TEST_CASE("basic observers work", "[view]") {
 		CHECK(mut_view.end()   == vec.data() + 5);
 		CHECK(mut_view.at(0) == 1);
 		CHECK(mut_view.at(4) == 5);
-		CHECK_THROWS_AS(mut_view.at(-1), std::range_error const &);
-		CHECK_THROWS_AS(mut_view.at(5), std::range_error const &);
+		CHECK_THROWS_AS(mut_view.at(-1), std::range_error);
+		CHECK_THROWS_AS(mut_view.at(5), std::range_error);
 	}
 }
 

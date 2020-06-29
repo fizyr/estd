@@ -28,7 +28,7 @@
 
 #include "utility/move_marker.hpp"
 
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 
 namespace estd {
 

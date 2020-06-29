@@ -28,10 +28,9 @@
 
 #include "result/error.hpp"
 #include "traits/is_comparible.hpp"
-
-#include "../catch.hpp"
-
 #include "result/catch_string_conversions.hpp"
+
+#include <catch2/catch.hpp>
 
 namespace estd {
 
