@@ -1,4 +1,7 @@
+find_package(Catch2 REQUIRED)
+
 add_library(${PROJECT_NAME}_test_main EXCLUDE_FROM_ALL main.cpp)
+target_link_libraries(${PROJECT_NAME}_test_main PUBLIC Catch2::Catch2)
 
 define_property(GLOBAL PROPERTY CHECK_TARGET BRIEF_DOCS "." FULL_DOCS ".")
 set_property(GLOBAL PROPERTY CHECK_TARGET "check")

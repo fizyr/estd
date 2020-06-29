@@ -29,7 +29,7 @@
 #include "convert/convert.hpp"
 #include "convert/numerical.hpp"
 
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 
 template<typename T, typename E>
 struct Catch::StringMaker<estd::result<T, E>> {

@@ -26,11 +26,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "../static_assert_same.hpp"
 #include "any.hpp"
 #include "utility/move_marker.hpp"
 
-#include "../catch.hpp"
-#include "../static_assert_same.hpp"
+#include <catch2/catch.hpp>
 
 #include <vector>
 #include <optional>

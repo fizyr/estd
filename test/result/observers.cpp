@@ -26,11 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "../static_assert_same.hpp"
 #include "result.hpp"
+#include "result/catch_string_conversions.hpp"
 #include "tracker.hpp"
 
-#include "../catch.hpp"
-#include "../static_assert_same.hpp"
+#include <catch2/catch.hpp>
 
 namespace estd {
 
@@ -63,7 +64,7 @@ TEST_CASE("valid result observers", "[result]") {
 	}
 
 	SECTION("error observers") {
-		REQUIRE_THROWS_AS(valid.error(), std::logic_error &);
+		REQUIRE_THROWS_AS(valid.error(), std::logic_error);
 		REQUIRE_NOTHROW(valid.error_unchecked());
 		REQUIRE(valid.error_or(Error{7}) == Error{7});
 		REQUIRE(valid.error_or() == Error{0});
@@ -88,7 +89,7 @@ TEST_CASE("invalid result observers", "[result]") {
 	}
 
 	SECTION("value observers") {
-		REQUIRE_THROWS_AS(valid.value(), Error &);
+		REQUIRE_THROWS_AS(valid.value(), Error);
 		REQUIRE_NOTHROW(*valid);
 		REQUIRE_THROWS_AS(valid.value(make_exception), int);
 		REQUIRE(valid.value_or(4) == 4);
@@ -119,7 +120,7 @@ TEST_CASE("valid result<void> observers", "[result]") {
 	}
 
 	SECTION("error observers") {
-		REQUIRE_THROWS_AS(valid.error(), std::logic_error &);
+		REQUIRE_THROWS_AS(valid.error(), std::logic_error);
 		REQUIRE(valid.error_or(Error{7}) == Error{7});
 		REQUIRE(valid.error_or() == Error{0});
 	}
@@ -134,8 +135,8 @@ TEST_CASE("invalid result<void> observers", "[result]") {
 	}
 
 	SECTION("value observers") {
-		REQUIRE_THROWS_AS(invalid.value(), Error &);
-		REQUIRE_THROWS_AS(*invalid, Error &);
+		REQUIRE_THROWS_AS(invalid.value(), Error);
+		REQUIRE_THROWS_AS(*invalid, Error);
 		REQUIRE_THROWS_AS(invalid.value(make_exception), int);
 	}
 

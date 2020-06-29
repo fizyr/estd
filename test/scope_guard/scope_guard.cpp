@@ -1,6 +1,6 @@
 #include "scope_guard.hpp"
 
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 
 #include <type_traits>
 

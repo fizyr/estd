@@ -29,7 +29,7 @@
 #include "convert.hpp"
 #include "result/error.hpp"
 
-#include "../catch.hpp"
+#include <catch2/catch.hpp>
 
 namespace estd {
 
