@@ -51,7 +51,7 @@ T && make_default_exception (T && in) { return in; }
 inline std::system_error make_default_exception (std::error_code error) { return error; }
 
 template<typename T, typename E>
-class result {
+class [[nodiscard]] result {
 public:
 	using Type  = T;
 	using Error = E;
@@ -212,7 +212,7 @@ private:
 };
 
 template<typename E>
-class result<void, E> {
+class [[nodiscard]] result<void, E> {
 public:
 	using Type  = void;
 	using Error = E;
