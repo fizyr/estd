@@ -5,6 +5,7 @@
 
 #include <catch2/catch.hpp>
 
+/// StringMaker for estd::result<T, E>.
 template<typename T, typename E>
 struct Catch::StringMaker<estd::result<T, E>> {
 	static std::string convert(estd::result<T, E> const & value) {
@@ -13,6 +14,7 @@ struct Catch::StringMaker<estd::result<T, E>> {
 	}
 };
 
+/// StringMaker for estd::result<void, E>.
 template<typename E>
 struct Catch::StringMaker<estd::result<void, E>> {
 	static std::string convert(estd::result<void, E> const & value) {
@@ -21,6 +23,7 @@ struct Catch::StringMaker<estd::result<void, E>> {
 	}
 };
 
+/// StringMaker for std::error_code.
 template<>
 struct Catch::StringMaker<std::error_code> {
 	static std::string convert(std::error_code const & error) {
