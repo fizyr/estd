@@ -31,6 +31,8 @@
 
 #include "../catch.hpp"
 
+#include "result/catch_string_conversions.hpp"
+
 namespace estd {
 
 class test_category_ : public std::error_category {

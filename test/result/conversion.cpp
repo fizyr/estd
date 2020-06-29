@@ -31,6 +31,8 @@
 #include "../catch.hpp"
 #include "../static_assert_same.hpp"
 
+#include "result/catch_string_conversions.hpp"
+
 namespace estd {
 
 struct Error {
