@@ -7,3 +7,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## master
 ### Added
 - Add Catch2 string serialization for `result<T, E>` and `error`.
+- Add [[nodiscard]] attribute to `result<T, E>` to prevent silently ignored errors.
