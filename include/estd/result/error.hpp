@@ -2,6 +2,7 @@
 #include "./unspecified_category.hpp"
 
 #include <initializer_list>
+#include <cerrno>
 #include <string>
 #include <system_error>
 #include <type_traits>
@@ -73,11 +74,43 @@ struct error {
 	/// Create an unspecified error with a description.
 	explicit error(std::string description) : error{unspecified_errc::unspecified, std::move(description)} {};
 
-	///// Create an unspecified error with a description stack.
+	/// Create an unspecified error with a description stack.
 	explicit error(std::vector<std::string> description) : error{unspecified_errc::unspecified, std::move(description)} {}
 
 	/// Create an unspecified error with a description stack.
 	explicit error(std::initializer_list<std::string> description) : error(std::vector<std::string>{std::move(description)}) {};
+
+	/// Create an error using the last OS error.
+	/**
+	 * This function uses `errno` to create the error code.
+	 */
+	static error last_os_error() {
+		return std::error_code{errno, std::generic_category()};
+	}
+
+	/// Create an error using the last OS error and a description.
+	/**
+	 * This function uses `errno` to create the error code.
+	 */
+	static error last_os_error(std::string description) {
+		return {std::error_code{errno, std::generic_category()}, std::move(description)};
+	}
+
+	/// Create an error using the last OS error and a description stack.
+	/**
+	 * This function uses `errno` to create the error code.
+	 */
+	static error last_os_error(std::vector<std::string> description) {
+		return {std::error_code{errno, std::generic_category()}, std::move(description)};
+	}
+
+	/// Create an error using the last OS error and a description stack.
+	/**
+	 * This function uses `errno` to create the error code.
+	 */
+	static error last_os_error(std::initializer_list<std::string> description) {
+		return {std::error_code{errno, std::generic_category()}, std::move(description)};
+	}
 
 	/// Check if this error represents an error and not sucess.
 	explicit operator bool() const noexcept {
