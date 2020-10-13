@@ -32,6 +32,8 @@
 
 #include <catch2/catch.hpp>
 
+#include <cerrno>
+
 namespace estd {
 
 class test_category_ : public std::error_category {
@@ -116,6 +118,11 @@ TEST_CASE("error.format() formats correctly", "[result]") {
 			CHECK(error(unspecified_errc::unspecified).format() == "unspecified error -1");
 		}
 	}
+}
+
+TEST_CASE("error.last_os_error() wraps errno correctly", "[result]") {
+	errno = ENOENT;
+	CHECK(error::last_os_error() == std::errc::no_such_file_or_directory);
 }
 
 }
