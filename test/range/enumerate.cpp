@@ -71,7 +71,6 @@ TEST_CASE("enumerating an enumeration of a vector", "[enumerate]") {
 
 TEST_CASE("elements can be modified while enumerating a vector", "[enumerate]") {
 	std::vector<int> vec{3, 2, 1};
-	int i = 0;
 
 	for (auto [count, elem] : enumerate(vec)) {
 		elem = count;

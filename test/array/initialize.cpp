@@ -42,7 +42,6 @@ TEST_CASE("initialize", "[array]") {
 	});
 
 	REQUIRE(array == target_array);
-
 }
 
 }
