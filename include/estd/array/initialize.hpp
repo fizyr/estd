@@ -36,15 +36,15 @@ namespace estd {
 namespace detail {
 
 template <std::size_t... Is, typename F>
-auto init_array_function_helper(std::index_sequence<Is...>, F&& f) {
-	return std::array<decltype(f()), sizeof...(Is)>{((void)Is, f())...};
+auto make_array_helper(std::index_sequence<Is...>, F&& f) {
+	return std::array<decltype(f(std::size_t())), sizeof...(Is)>{(f(Is))...};
 }
 
 }
 
 template <std::size_t N, typename F>
-auto init_array_function(F && f) {
-	return detail::init_array_function_helper(std::make_index_sequence<N>{}, std::forward<F>(f));
+auto make_array(F && f) {
+	return detail::make_array_helper(std::make_index_sequence<N>{}, std::forward<F>(f));
 }
 
 }

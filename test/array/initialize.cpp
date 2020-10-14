@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Fizyr B.V. - https://fizyr.com
+/* Copyright 2020 Fizyr B.V. - https://fizyr.com
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -35,10 +35,9 @@ namespace estd {
 
 TEST_CASE("initialize", "[array]") {
 	std::array<int, 5> target_array {0, 1, 2, 3, 4};
-	std::size_t counter = 0;
 
-	auto array = init_array_function<5>([&counter, &target_array]() {
-		return target_array.at(counter++);
+	auto array = make_array<5>([&target_array](std::size_t counter) {
+		return target_array.at(counter);
 	});
 
 	REQUIRE(array == target_array);
