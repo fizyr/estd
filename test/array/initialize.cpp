@@ -33,11 +33,11 @@
 
 namespace estd {
 
-TEST_CASE("initialize", "[array]") {
+TEST_CASE("make_array", "[array]") {
 	std::array<int, 5> target_array {0, 1, 2, 3, 4};
 
-	auto array = make_array<5>([&target_array](std::size_t counter) {
-		return target_array.at(counter);
+	auto array = make_array<5>([](std::size_t i) {
+		return int(i);
 	});
 
 	REQUIRE(array == target_array);
