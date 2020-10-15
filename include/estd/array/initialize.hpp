@@ -34,16 +34,18 @@
 namespace estd {
 
 namespace detail {
-
-template <std::size_t... Is, typename F>
-auto make_array_helper(std::index_sequence<Is...>, F&& f) {
-	return std::array<decltype(f(std::size_t())), sizeof...(Is)>{(f(Is))...};
+	template <std::size_t... Is, typename F>
+	constexpr auto make_array_helper(std::index_sequence<Is...>, F&& f) {
+		return std::array<decltype(f(std::size_t())), sizeof...(Is)>{f(Is)...};
+	}
 }
 
-}
-
+/// Create an array by calling a function for each element.
+/**
+ * The function will be passed the index of the element being constructed.
+ */
 template <std::size_t N, typename F>
-auto make_array(F && f) {
+constexpr auto make_array(F && f) {
 	return detail::make_array_helper(std::make_index_sequence<N>{}, std::forward<F>(f));
 }
 
