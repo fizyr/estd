@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Fizyr B.V. - https://fizyr.com
+/* Copyright 2020 Fizyr B.V. - https://fizyr.com
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,61 +27,20 @@
  */
 
 #include "../static_assert_same.hpp"
-#include "range/enumerate.hpp"
+#include "array/initialize.hpp"
 
 #include <catch2/catch.hpp>
 
-#include <vector>
-
 namespace estd {
 
-TEST_CASE("enumerating a vector", "[enumerate]") {
-	std::vector<int> vec{3, 2, 1};
+TEST_CASE("make_array", "[array]") {
+	std::array<int, 5> target_array {0, 1, 2, 3, 4};
 
-	SECTION("counter increments and values are looped") {
-		int i = 0;
-		for (auto [count, elem] : enumerate(vec)) {
-			REQUIRE(i++ == count);
-			REQUIRE(elem == 3 - count);
-		}
-	}
+	auto array = make_array<5>([](std::size_t i) {
+		return int(i);
+	});
 
-	SECTION("identity of elements is same") {
-		REQUIRE(&vec.front() == &std::get<1>(*enumerate(vec).begin()));
-		for (auto const [count, elem] : enumerate(vec)) {
-			REQUIRE(&vec[count] == &elem);
-		}
-	}
-
-	SECTION("type of looped elements is reference") {
-		static_assert(std::is_same_v<decltype(*enumerate(vec).begin()), std::tuple<std::ptrdiff_t, int &>>);
-	}
-}
-
-TEST_CASE("enumerating an enumeration of a vector", "[enumerate]") {
-	std::vector<int> vec{3, 2, 1};
-	int i = 0;
-	for (auto [count1, elem] : enumerate(enumerate(vec))) {
-		auto [count2, value] = elem;
-		REQUIRE(i++ == count1);
-		REQUIRE(count2 == count1);
-		REQUIRE(value == 3 - count1);
-	}
-}
-
-TEST_CASE("elements can be modified while enumerating a vector", "[enumerate]") {
-	std::vector<int> vec{3, 2, 1};
-
-	for (auto [count, elem] : enumerate(vec)) {
-		elem = count;
-	}
-
-	REQUIRE(vec == (std::vector{0, 1, 2}));
-}
-
-TEST_CASE("elements can not be modified while enumerating a const vector", "[enumerate]") {
-	std::vector<int> const vec{3, 2, 1};
-	static_assert(std::is_same_v<decltype(*enumerate(vec).begin()), std::tuple<std::ptrdiff_t, int const &>>);
+	REQUIRE(array == target_array);
 }
 
 }

@@ -43,6 +43,7 @@ endfunction()
 
 
 add_subdirectory(any)
+add_subdirectory(array)
 add_subdirectory(convert)
 add_subdirectory(heap_array)
 add_subdirectory(range)
