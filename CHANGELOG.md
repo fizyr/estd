@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## master
 ### Added
-- Add `init_array_function` for initializing an array during construction.
+- Add `make_array` for creating an array with a function that constructs the elements.
 
 ## 0.5.0 - 2020-10-13
 ### Added
