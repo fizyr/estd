@@ -43,7 +43,7 @@ namespace impl {
 	template<typename T>
 	result<T, error> string_to_numerical(std::string_view input) {
 		T value;
-		auto [ptr, error] = std::from_chars(input.begin(), input.end(), value);
+		auto [ptr, error] = std::from_chars(input.data(), input.data() + input.size(), value);
 		if (error != std::errc{}) return estd::error{error};
 		if (ptr != input.end())   return estd::error{std::errc::invalid_argument};
 		return {estd::in_place_valid, value};
@@ -55,14 +55,14 @@ namespace impl {
 		std::string result;
 		result.resize(16);
 		while (true) {
-			auto [ptr, error] = std::to_chars(&result[0], &result[result.size()], input);
+			auto [ptr, error] = std::to_chars(result.data(), result.data() + result.size(), input);
 			if (error == std::errc::value_too_large && result.size() < 1024) {
 				result.resize(result.size() * 2);
 			} else if (error != std::errc{}) {
 				return estd::error{error};
 			} else {
 				// Resize down to the used space.
-				result.resize(ptr - &result[0]);
+				result.resize(ptr - result.data());
 				return {estd::in_place_valid, std::move(result)};
 			}
 		}
