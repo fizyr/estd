@@ -43,9 +43,9 @@ namespace impl {
 	template<typename T>
 	result<T, error> string_to_numerical(std::string_view input) {
 		T value;
-		auto [ptr, error] = std::from_chars(&input[0], &input[input.size()], value);
-		if (error != std::errc{})        return estd::error{error};
-		if (ptr != &input[input.size()]) return estd::error{std::errc::invalid_argument};
+		auto [ptr, error] = std::from_chars(input.begin(), input.end(), value);
+		if (error != std::errc{}) return estd::error{error};
+		if (ptr != input.end())   return estd::error{std::errc::invalid_argument};
 		return {estd::in_place_valid, value};
 	}
 

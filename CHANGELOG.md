@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## master
 
+## 0.6.1 - 2021-06-09
+### Fixed
+- Fix `string_to_numerical` undefined behaviour.
+
 ## 0.6.0 - 2020-10-19
 ### Added
 - Add `make_array` for creating an array with a function that constructs the elements.
