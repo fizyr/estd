@@ -165,6 +165,54 @@ TEST_CASE("string/numerical conversions work for long long", "[convert]") {
 	REQUIRE(convert<std::string>((unsigned long long) 1) ==  "1");
 }
 
+TEST_CASE("string/numerical conversions work for float", "[convert]") {
+	REQUIRE(parse<float>(          "0")   == (float)         0);
+	REQUIRE(parse<float>(          "0.5") == (float)         0.5);
+	REQUIRE(parse<float>(         "-0.5") == (float)        -0.5);
+	REQUIRE(parse<float>(          "1") == (float)           1);
+	REQUIRE(parse<float>(         "-1") == (float)          -1);
+	REQUIRE(parse<float>( "2147483647") == (float)  2147483647);
+	REQUIRE(parse<float>("-2147483647") == (float) -2147483647);
+
+	REQUIRE(convert<std::string>((float) -1)   == "-1");
+	REQUIRE(convert<std::string>((float) -0.5) == "-0.5");
+	REQUIRE(convert<std::string>((float)  0)   ==  "0");
+	REQUIRE(convert<std::string>((float)  0.5) ==  "0.5");
+	REQUIRE(convert<std::string>((float)  1)   ==  "1");
+}
+
+TEST_CASE("string/numerical conversions work for double", "[convert]") {
+	REQUIRE(parse<double>(          "0")   == (double)         0);
+	REQUIRE(parse<double>(          "0.5") == (double)         0.5);
+	REQUIRE(parse<double>(         "-0.5") == (double)        -0.5);
+	REQUIRE(parse<double>(          "1") == (double)           1);
+	REQUIRE(parse<double>(         "-1") == (double)          -1);
+	REQUIRE(parse<double>( "2147483647") == (double)  2147483647);
+	REQUIRE(parse<double>("-2147483647") == (double) -2147483647);
+
+	REQUIRE(convert<std::string>((double) -1)   == "-1");
+	REQUIRE(convert<std::string>((double) -0.5) == "-0.5");
+	REQUIRE(convert<std::string>((double)  0)   ==  "0");
+	REQUIRE(convert<std::string>((double)  0.5) ==  "0.5");
+	REQUIRE(convert<std::string>((double)  1)   ==  "1");
+}
+
+TEST_CASE("string/numerical conversions work for long double", "[convert]") {
+	REQUIRE(parse<long double>(          "0")   == (long double)         0);
+	REQUIRE(parse<long double>(          "0.5") == (long double)         0.5);
+	REQUIRE(parse<long double>(         "-0.5") == (long double)        -0.5);
+	REQUIRE(parse<long double>(          "1") == (long double)           1);
+	REQUIRE(parse<long double>(         "-1") == (long double)          -1);
+	REQUIRE(parse<long double>( "2147483647") == (long double)  2147483647);
+	REQUIRE(parse<long double>("-2147483647") == (long double) -2147483647);
+
+	REQUIRE(convert<std::string>((long double) -1)   == "-1");
+	REQUIRE(convert<std::string>((long double) -0.5) == "-0.5");
+	REQUIRE(convert<std::string>((long double)  0)   ==  "0");
+	REQUIRE(convert<std::string>((long double)  0.5) ==  "0.5");
+	REQUIRE(convert<std::string>((long double)  1)   ==  "1");
+}
+
 TEST_CASE("invalid patterns give an error") {
 	REQUIRE(parse<int>("aap") == std::errc::invalid_argument);
 	REQUIRE(parse<int>("123aap") == std::errc::invalid_argument);
