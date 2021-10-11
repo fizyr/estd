@@ -1,3 +1,3 @@
-# Unreleased
+# Version 0.6.3 - 2021-10-11
 - [add][minor] Enable conversions between strings and floating point types.
 - [fix][patch] Fix `estd::zip()` for tuples with GCC 11.
