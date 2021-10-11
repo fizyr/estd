@@ -47,8 +47,8 @@ namespace detail {
 	}
 
 	template<typename... Tuples, std::size_t... I>
-	std::tuple<zip_tuple_at_index_t<I, Tuples...>...> tuple_zip(Tuples && ...tuples, std::index_sequence<I...>) {
-		return {zip_tuple_at_index<I>(std::forward<Tuples>(tuples)...)...};
+	auto tuple_zip(Tuples && ...tuples, std::index_sequence<I...>) {
+		return std::make_tuple(zip_tuple_at_index<I>(std::forward<Tuples>(tuples)...)...);
 	}
 
 }
