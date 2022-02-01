@@ -114,7 +114,7 @@ ESTD_DEFINE_NUMERICAL_CONVERSIONS(unsigned long);
 ESTD_DEFINE_NUMERICAL_CONVERSIONS(long long);
 ESTD_DEFINE_NUMERICAL_CONVERSIONS(unsigned long long);
 
-#if defined(__GNUC__) && __GNUC__ < 11
+#if defined(__GNUC__) && __GNUC__ < 11 && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #error "GCC version is too old for floating point/string conversions. You need at-least GCC 11."
 #else
 ESTD_DEFINE_NUMERICAL_CONVERSIONS(float);
