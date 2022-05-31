@@ -29,7 +29,11 @@
 #include "convert/convert.hpp"
 #include "convert/numerical.hpp"
 
-#include <catch2/catch.hpp>
+# if __has_include(<catch2/catch_test_macros.hpp>)
+#   include <catch2/catch_test_macros.hpp>
+# else
+#   include <catch2/catch.hpp>
+# endif
 
 template<typename T, typename E>
 struct Catch::StringMaker<estd::result<T, E>> {

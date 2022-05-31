@@ -3,7 +3,11 @@
 #include "./result.hpp"
 #include "./error.hpp"
 
-#include <catch2/catch.hpp>
+# if __has_include(<catch2/catch_tostring.hpp>)
+#   include <catch2/catch_tostring.hpp>
+# else
+#   include <catch2/catch.hpp>
+# endif
 
 /// StringMaker for estd::result<T, E>.
 template<typename T, typename E>

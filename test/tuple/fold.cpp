@@ -29,7 +29,11 @@
 #include "../static_assert_same.hpp"
 #include "tuple/fold.hpp"
 
-#include <catch2/catch.hpp>
+# if __has_include(<catch2/catch_test_macros.hpp>)
+#   include <catch2/catch_test_macros.hpp>
+# else
+#   include <catch2/catch.hpp>
+# endif
 
 namespace estd {
 

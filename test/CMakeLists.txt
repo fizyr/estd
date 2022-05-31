@@ -1,14 +1,20 @@
 find_package(Catch2 REQUIRED)
 
-add_library(${PROJECT_NAME}_test_main EXCLUDE_FROM_ALL main.cpp)
-target_link_libraries(${PROJECT_NAME}_test_main PUBLIC Catch2::Catch2)
+if (Catch2_VERSION VERSION_LESS 3.0.0)
+	add_library(${PROJECT_NAME}_test_main EXCLUDE_FROM_ALL main.cpp)
+	target_link_libraries(${PROJECT_NAME}_test_main PUBLIC Catch2::Catch2)
+endif()
 
 define_property(GLOBAL PROPERTY CHECK_TARGET BRIEF_DOCS "." FULL_DOCS ".")
 set_property(GLOBAL PROPERTY CHECK_TARGET "check")
 
 function(declare_test name)
 	add_executable(${name} EXCLUDE_FROM_ALL ${ARGN})
-	target_link_libraries(${name} PRIVATE ${PROJECT_NAME}_test_main)
+	if (Catch2_VERSION VERSION_LESS 3.0.0)
+		target_link_libraries(${name} PRIVATE ${PROJECT_NAME}_test_main)
+	else()
+		target_link_libraries(${name} PRIVATE Catch2::Catch2WithMain)
+	endif()
 	add_custom_target(check_${name} COMMAND ${name})
 
 	get_property(check_target GLOBAL PROPERTY CHECK_TARGET)
@@ -40,7 +46,6 @@ function(declare_compile_tests prefix)
 		declare_compile_test(${prefix}${test} ${test}.cpp)
 	endforeach()
 endfunction()
-
 
 add_subdirectory(any)
 add_subdirectory(array)

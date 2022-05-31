@@ -30,8 +30,6 @@
 #include "result/result.hpp"
 #include "result/traits.hpp"
 
-#include <catch2/catch.hpp>
-
 namespace estd {
 
 static_assert(is_result<int> == false);
