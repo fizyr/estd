@@ -8,3 +8,20 @@
 # Version 0.6.3 - 2021-10-11
 - [add][minor] Enable conversions between strings and floating point types.
 - [fix][patch] Fix `estd::zip()` for tuples with GCC 11.
+
+# Version 0.6.2 - 2021-06-09
+- [fix][minor] Fix undefined behaviour in `numerical_to_string`.
+- [fix][minor] Fix portability of `string_to_numerical`.
+
+# Version 0.6.1 - 2021-06-09
+- [fix][minor] Fix undefined behaviour in `string_to_numerical`.
+
+# Version 0.6.0 - 2020-10-19
+- [add][minor] Add `make_array` for creating an array with a function that constructs the elements.
+
+# Version 0.5.0 - 2020-10-13
+- [add][minor] Add `error::last_os_error()` overloads to create an error from `errno`.
+
+# Version 0.4.0 - 2020-09-01
+- [add][minor] Add Catch2 string serialization for `result<T, E>` and `error`.
+- [add][minor] Add [[nodiscard]] attribute to `result<T, E>` to prevent silently ignored errors.
