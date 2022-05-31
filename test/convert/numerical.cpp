@@ -169,6 +169,7 @@ TEST_CASE("string/numerical conversions work for long long", "[convert]") {
 	REQUIRE(convert<std::string>((unsigned long long) 1) ==  "1");
 }
 
+#ifdef ESTD_HAVE_FLOAT_STRING_CONVERSIONS
 TEST_CASE("string/numerical conversions work for float", "[convert]") {
 	REQUIRE(parse<float>(          "0")   == (float)         0);
 	REQUIRE(parse<float>(          "0.5") == (float)         0.5);
@@ -216,6 +217,7 @@ TEST_CASE("string/numerical conversions work for long double", "[convert]") {
 	REQUIRE(convert<std::string>((long double)  0.5) ==  "0.5");
 	REQUIRE(convert<std::string>((long double)  1)   ==  "1");
 }
+#endif
 
 TEST_CASE("invalid patterns give an error") {
 	REQUIRE(parse<int>("aap") == std::errc::invalid_argument);
