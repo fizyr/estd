@@ -1,4 +1,4 @@
-# main
+# Version 0.6.5 - 2022-05-31
 - [change][patch] Detect old libc++ without `std::to_chars` for floating-point types.
 - [change][patch] Turn missing float/string conversions into a compile time warning instead of an error.
 
