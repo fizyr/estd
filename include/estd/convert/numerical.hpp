@@ -37,6 +37,12 @@
 #include <string_view>
 #include <system_error>
 
+#if defined(__has_include)
+#  if __has_include(<ciso646>)
+#    include <ciso646>
+#  endif
+#endif
+
 namespace estd {
 
 namespace impl {
@@ -116,6 +122,8 @@ ESTD_DEFINE_NUMERICAL_CONVERSIONS(unsigned long long);
 
 #if defined(__GNUC__) && __GNUC__ < 11 && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #error "GCC version is too old for floating point/string conversions. You need at-least GCC 11."
+#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 14000
+#error "libc++ version is too old for floating point/string conversions. You need at-least libc++ 14."
 #else
 ESTD_DEFINE_NUMERICAL_CONVERSIONS(float);
 ESTD_DEFINE_NUMERICAL_CONVERSIONS(double);
